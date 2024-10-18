@@ -123,6 +123,18 @@ class Window(QWidget):
 
         vbox = QVBoxLayout()
 
+        self.initStateButtons(vbox)
+
+        view = QGraphicsView(self.scene)
+        view.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        hbox = QHBoxLayout(self)
+        hbox.addLayout(vbox)
+        hbox.addWidget(view)
+
+        self.setLayout(hbox)
+
+    def initStateButtons(self, vbox):
         select_mode = QRadioButton("Select")
         select_mode.toggled.connect(self.scene.toggleSelectMode)
         vbox.addWidget(select_mode)
@@ -136,16 +148,6 @@ class Window(QWidget):
         mode_group = QButtonGroup()
         mode_group.addButton(select_mode)
         mode_group.addButton(vertex_mode)
-
-        view = QGraphicsView(self.scene)
-        view.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        hbox = QHBoxLayout(self)
-        hbox.addLayout(vbox)
-        hbox.addWidget(view)
-
-        self.setLayout(hbox)
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
