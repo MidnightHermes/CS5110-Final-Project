@@ -44,16 +44,13 @@ class CenteredTextItem(QGraphicsSimpleTextItem):
 
 
 class Vertex(QGraphicsEllipseItem):
-    def __init__(self, x, y, d, pen, brush):
+    def __init__(self, x, y, d):
         # By default, x and y correspond to the top-left
         # corner of the rect bounding the circle.
         cx = x - d/2
         cy = y - d/2
 
         super().__init__(cx, cy, d, d)
-
-        self.setBrush(brush)
-        self.setPen(pen)
 
         global created
         self.stamp = created
@@ -104,7 +101,9 @@ class Scene(QGraphicsScene):
             x = e.scenePos().x()
             y = e.scenePos().y()
 
-            vertex = Vertex(x, y, 50, self._circlePen, self._circleBrush)
+            vertex = Vertex(x, y, 50)
+            vertex.setPen(self._circlePen)
+            vertex.setBrush(self._circleBrush)
         
             self.vertexList.append(vertex)
             self.addItem(vertex)
