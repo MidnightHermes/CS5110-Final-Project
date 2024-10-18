@@ -93,9 +93,6 @@ class Scene(QGraphicsScene):
             super().mousePressEvent(e)  # propogate in order for select and drag to work
             return
 
-        # TODO: Delete vertices with right-click.
-        # Might need to use contextMenuEvent for that.
-
         if e.button() == Qt.MouseButton.LeftButton:
             e.accept()
             x = e.scenePos().x()
