@@ -20,7 +20,10 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+
 next_label = 0
+created = 0
+
 
 class CenteredTextItem(QGraphicsSimpleTextItem):
     def __init__(self, text, parent, pos=None):
@@ -52,7 +55,12 @@ class Vertex(QGraphicsEllipseItem):
         self.setBrush(brush)
         self.setPen(pen)
 
+        global created
+        self.stamp = created
+        created += 1
+
         global next_label
+        self.label = next_label
         item = CenteredTextItem(str(next_label), self)
         next_label += 1
 
@@ -100,7 +108,12 @@ class Scene(QGraphicsScene):
         
             self.vertexList.append(vertex)
             self.addItem(vertex)
+        if e.button() == Qt.MouseButton.RightButton:
+            underMouse = filter(lambda v: v.isUnderMouse(), self.vertexList)
 
+            topVertex = max(underMouse, key=lambda v: v.stamp)
+
+            self.removeItem(topVertex)
 
 class Window(QWidget):
     def __init__(self):
