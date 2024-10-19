@@ -44,6 +44,10 @@ class CenteredTextItem(QGraphicsSimpleTextItem):
 
 
 class Vertex(QGraphicsEllipseItem):
+    CUR_SELECTABLE = Qt.CursorShape.OpenHandCursor
+    CUR_DRAG = Qt.CursorShape.ClosedHandCursor
+    CUR_EDGE = Qt.CursorShape.PointingHandCursor
+
     def __init__(self, x, y, d):
         # By default, x and y correspond to the top-left
         # corner of the rect bounding the circle.
@@ -61,22 +65,28 @@ class Vertex(QGraphicsEllipseItem):
         item = CenteredTextItem(str(next_label), self)
         next_label += 1
 
+    def isSelectable(self):
+        return self.cursor() == Vertex.CUR_SELECTABLE
+
+    def isDrag(self):
+        return self.cursor() == Vertex.CUR_DRAG
+
     def mousePressEvent(self, e):
-        if not (self.cursor() == Qt.CursorShape.OpenHandCursor and
+        if not (self.isSelectable() and
                 e.button() == Qt.MouseButton.LeftButton):
             e.ignore()
             return
 
         e.accept()
 
-        self.setCursor(Qt.CursorShape.ClosedHandCursor)
+        self.setCursor(Vertex.CUR_DRAG)
 
     def mouseReleaseEvent(self, e):
-        if not self.cursor() == Qt.CursorShape.ClosedHandCursor:
+        if not self.isDrag():
             e.ignore()
             return
 
-        self.setCursor(Qt.CursorShape.OpenHandCursor)
+        self.setCursor(Vertex.CUR_SELECTABLE)
         super().mouseReleaseEvent(e)
 
 class Scene(QGraphicsScene):
@@ -102,7 +112,7 @@ class Scene(QGraphicsScene):
             v.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, b)
             
             if b:
-                v.setCursor(Qt.CursorShape.OpenHandCursor)
+                v.setCursor(Vertex.CUR_SELECTABLE)
             else:
                 v.unsetCursor()
 
@@ -116,7 +126,7 @@ class Scene(QGraphicsScene):
 
         for v in self.vertexList:
             if b:
-                v.setCursor(Qt.CursorShape.PointingHandCursor)
+                v.setCursor(Vertex.CUR_EDGE)
             else:
                 v.unsetCursor()
 
