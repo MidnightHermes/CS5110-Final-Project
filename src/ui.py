@@ -109,6 +109,17 @@ class Scene(QGraphicsScene):
     def toggleVertexMode(self, b):
         self._isVertexMode = b
 
+    def toggleEdgeMode(self, b):
+        # TODO: make vertices bubble out a little when hovered over
+
+        # TODO: actual edge drawing functionality
+
+        for v in self.vertexList:
+            if b:
+                v.setCursor(Qt.CursorShape.PointingHandCursor)
+            else:
+                v.unsetCursor()
+
     def mousePressEvent(self, e):
         if not self._isVertexMode:
             super().mousePressEvent(e)  # propogate in order for select and drag to work
@@ -162,9 +173,14 @@ class Window(QWidget):
         vertex_mode.toggled.connect(self.scene.toggleVertexMode)
         vbox.addWidget(vertex_mode)
 
+        edge_mode = QRadioButton("Edges")
+        edge_mode.toggled.connect(self.scene.toggleEdgeMode)
+        vbox.addWidget(edge_mode)
+
         mode_group = QButtonGroup()
         mode_group.addButton(select_mode)
         mode_group.addButton(vertex_mode)
+        mode_group.addButton(edge_mode)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
