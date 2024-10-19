@@ -61,7 +61,23 @@ class Vertex(QGraphicsEllipseItem):
         item = CenteredTextItem(str(next_label), self)
         next_label += 1
 
+    def mousePressEvent(self, e):
+        if not (self.cursor() == Qt.CursorShape.OpenHandCursor and
+                e.button() == Qt.MouseButton.LeftButton):
+            e.ignore()
+            return
 
+        e.accept()
+
+        self.setCursor(Qt.CursorShape.ClosedHandCursor)
+
+    def mouseReleaseEvent(self, e):
+        if not self.cursor() == Qt.CursorShape.ClosedHandCursor:
+            e.ignore()
+            return
+
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+        super().mouseReleaseEvent(e)
 
 class Scene(QGraphicsScene):
     def __init__(self, x, y, width, height):
@@ -84,6 +100,11 @@ class Scene(QGraphicsScene):
         for v in self.vertexList:
             v.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, b)
             v.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, b)
+            
+            if b:
+                v.setCursor(Qt.CursorShape.OpenHandCursor)
+            else:
+                v.unsetCursor()
 
     def toggleVertexMode(self, b):
         self._isVertexMode = b
