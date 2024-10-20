@@ -130,6 +130,14 @@ class Scene(QGraphicsScene):
             else:
                 v.unsetCursor()
 
+    def getVertexUnderMouse(self):
+        underMouse = filter(Vertex.isUnderMouse, self.vertexList)
+
+        try:
+            return max(underMouse, key=lambda v: v.stamp)
+        except ValueError:  # If underMouse is an empty list
+            return None
+
     def mousePressEvent(self, e):
         if not self._isVertexMode:
             super().mousePressEvent(e)  # propogate in order for select and drag to work
@@ -147,11 +155,10 @@ class Scene(QGraphicsScene):
             self.vertexList.append(vertex)
             self.addItem(vertex)
         if e.button() == Qt.MouseButton.RightButton:
-            underMouse = filter(lambda v: v.isUnderMouse(), self.vertexList)
-
-            topVertex = max(underMouse, key=lambda v: v.stamp)
-
-            self.removeItem(topVertex)
+            toBeRemoved = self.getVertexUnderMouse()
+            
+            if toBeRemoved is not None:
+                self.removeItem(toBeRemoved)
 
 class Window(QWidget):
     def __init__(self):
