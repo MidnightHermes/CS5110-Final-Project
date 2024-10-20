@@ -72,22 +72,23 @@ class Vertex(QGraphicsEllipseItem):
         return self.cursor() == Vertex.CUR_DRAG
 
     def mousePressEvent(self, e):
-        if not (self.isSelectable() and
-                e.button() == Qt.MouseButton.LeftButton):
+        if (self.isSelectable() and
+            e.button() == Qt.MouseButton.LeftButton):
+
+            e.accept()
+
+            self.setCursor(Vertex.CUR_DRAG)
+        else:
             e.ignore()
-            return
-
-        e.accept()
-
-        self.setCursor(Vertex.CUR_DRAG)
 
     def mouseReleaseEvent(self, e):
-        if not self.isDrag():
-            e.ignore()
-            return
+        if (self.isDrag() and  # If currently dragging in select mode
+            e.button() == Qt.MouseButton.LeftButton):
 
-        self.setCursor(Vertex.CUR_SELECTABLE)
-        super().mouseReleaseEvent(e)
+            self.setCursor(Vertex.CUR_SELECTABLE)
+            super().mouseReleaseEvent(e)
+        else:
+            e.ignore()
 
 class Scene(QGraphicsScene):
     def __init__(self, x, y, width, height):
@@ -103,9 +104,12 @@ class Scene(QGraphicsScene):
         # List of vertices created. Can possibly make it a set?
         self.vertexList = []
 
+        self._isSelectMode = False
         self._isVertexMode = False
 
     def toggleSelectMode(self, b):
+        self._isSelectMode = b
+
         # If select mode is enabled, make vertices selectable and movable.
         for v in self.vertexList:
             v.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, b)
@@ -160,14 +164,13 @@ class Scene(QGraphicsScene):
             self.removeItem(toBeRemoved)
 
     def mousePressEvent(self, e):
-        if not self._isVertexMode:
+        if self._isSelectMode:
             super().mousePressEvent(e)  # propogate in order for select and drag to work
-            return
-
-        if e.button() == Qt.MouseButton.LeftButton:
-            self.addVertex(e)
-        if e.button() == Qt.MouseButton.RightButton:
-            self.removeVertex(e)
+        elif self._isVertexMode:
+            if e.button() == Qt.MouseButton.LeftButton:
+                self.addVertex(e)
+            if e.button() == Qt.MouseButton.RightButton:
+                self.removeVertex(e)
 
 class Window(QWidget):
     def __init__(self):
