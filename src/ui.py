@@ -138,27 +138,36 @@ class Scene(QGraphicsScene):
         except ValueError:  # If underMouse is an empty list
             return None
 
+    def addVertex(self, e):
+        e.accept()
+
+        x = e.scenePos().x()
+        y = e.scenePos().y()
+
+        vertex = Vertex(x, y, 50)
+        vertex.setPen(self._circlePen)
+        vertex.setBrush(self._circleBrush)
+        
+        self.vertexList.append(vertex)
+        self.addItem(vertex)
+
+    def removeVertex(self, e):
+        e.accept()
+
+        toBeRemoved = self.getVertexUnderMouse()
+            
+        if toBeRemoved is not None:
+            self.removeItem(toBeRemoved)
+
     def mousePressEvent(self, e):
         if not self._isVertexMode:
             super().mousePressEvent(e)  # propogate in order for select and drag to work
             return
 
         if e.button() == Qt.MouseButton.LeftButton:
-            e.accept()
-            x = e.scenePos().x()
-            y = e.scenePos().y()
-
-            vertex = Vertex(x, y, 50)
-            vertex.setPen(self._circlePen)
-            vertex.setBrush(self._circleBrush)
-        
-            self.vertexList.append(vertex)
-            self.addItem(vertex)
+            self.addVertex(e)
         if e.button() == Qt.MouseButton.RightButton:
-            toBeRemoved = self.getVertexUnderMouse()
-            
-            if toBeRemoved is not None:
-                self.removeItem(toBeRemoved)
+            self.removeVertex(e)
 
 class Window(QWidget):
     def __init__(self):
