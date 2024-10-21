@@ -58,8 +58,13 @@ class Edge(QGraphicsLineItem):
         self._linkVertex = linkVertex
     
     def updatePosition(self):
-        print("updating position")
-        self.setLine(self._originVertex.x(), self._originVertex.y(), self._linkVertex.x(), self._linkVertex.y())
+        newX1 = self._originVertex.x()
+        newY1 = self._originVertex.y()
+        newX2 = self._linkVertex.x()
+        newY2 = self._linkVertex.y()
+        self.setLine(newX1, newY1, newX2, newY2)
+        # TODO: Remove debug print
+        print("Updated edge position", (newX1, newY1), (newX2, newY2))
 
 
 class Vertex(QGraphicsEllipseItem):
@@ -87,10 +92,12 @@ class Vertex(QGraphicsEllipseItem):
         next_label += 1
 
     def x(self):
-        self.boundingRect().center().x()
+        # TODO: Update boundingRect() on drag
+        # boundingRect() is a constant and does not change on drag
+        return self.boundingRect().center().x()
     
     def y(self):
-        self.boundingRect().center().y()
+        return self.boundingRect().center().y()
     
     def addEdge(self, edge):
         self._edges.append(edge)
