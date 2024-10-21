@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from scene import Scene
+from ui.scene import Scene
 
 class Window(QWidget):
     def __init__(self):

@@ -1,6 +1,6 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QGraphicsEllipseItem
-from centered_text_item import CenteredTextItem
+from ui.centered_text_item import CenteredTextItem
 
 
 class Vertex(QGraphicsEllipseItem):

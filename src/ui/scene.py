@@ -4,8 +4,8 @@ from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsScene,
 )
-from vertex import Vertex
-from edge import Edge
+from ui.vertex import Vertex
+from ui.edge import Edge
 
 
 class Scene(QGraphicsScene):
