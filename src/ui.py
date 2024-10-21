@@ -201,6 +201,11 @@ class Scene(QGraphicsScene):
         if self._originVertex is None:
             self._originVertex = nearest_vertex
         else:
+            # Catch case in which user clicks on empty space
+            if nearest_vertex is None:
+                # Reset origin vertex anyways
+                self._originVertex = None
+                return
             edge = Edge(self._originVertex, nearest_vertex)
             edge.setPen(self._circlePen)
 
