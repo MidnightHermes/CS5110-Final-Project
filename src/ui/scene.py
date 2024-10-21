@@ -62,6 +62,14 @@ class Scene(QGraphicsScene):
             return max(underMouse, key=lambda v: v.stamp)
         except ValueError:  # If underMouse is an empty list
             return None
+
+    def getEdgeUnderMouse(self):
+        underMouse = filter(Edge.isUnderMouse, self.edgeList)
+
+        try:
+            return max(underMouse, key=lambda e: e.stamp)
+        except ValueError:  # If underMouse is an empty list
+            return None
     
     def addEdge(self, e):
         e.accept()
@@ -81,7 +89,6 @@ class Scene(QGraphicsScene):
                 any(edge._linkVertex == nearest_vertex for edge in self._originVertex._edges) or
                 # or if user tries to connect a vertex to the originVertex that is already connected to it
                 any(edge._linkVertex == self._originVertex for edge in nearest_vertex._edges)):
-                print("Resetting vertex")
                 # Reset origin vertex anyways
                 self._originVertex = None
                 return
@@ -102,6 +109,7 @@ class Scene(QGraphicsScene):
         if toBeRemoved is not None:
             self.removeItem(toBeRemoved)
             self.edgeList.remove(toBeRemoved)
+            toBeRemoved._originVertex._edges.remove(toBeRemoved)
 
     def addVertex(self, e):
         e.accept()

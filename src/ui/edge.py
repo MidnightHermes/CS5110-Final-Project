@@ -2,6 +2,8 @@ from PyQt6.QtWidgets import QGraphicsLineItem
 
 
 class Edge(QGraphicsLineItem):
+    _created = 0
+
     def __init__(self, originVertex, linkVertex):
         x1 = originVertex.x
         y1 = originVertex.y
@@ -10,6 +12,9 @@ class Edge(QGraphicsLineItem):
 
         super().__init__(x1, y1, x2, y2)
         self.setZValue(-1)
+
+        self.stamp = Edge._created
+        Edge._created += 1
 
         self._originVertex = originVertex
         self._linkVertex = linkVertex
