@@ -34,10 +34,10 @@ class CenteredTextItem(QGraphicsSimpleTextItem):
         # of the textbox, so it needs to be corrected.
 
         if pos is None:
-            pos = parent.boundingRect().center()
+            pos = parent.sceneBoundingRect().center()
 
-        rWidth = self.boundingRect().width()
-        rHeight = self.boundingRect().height()
+        rWidth = self.sceneBoundingRect().width()
+        rHeight = self.sceneBoundingRect().height()
         true_pos = pos - QPointF(rWidth / 2, rHeight / 2)
 
         self.setPos(true_pos)
@@ -46,10 +46,10 @@ class CenteredTextItem(QGraphicsSimpleTextItem):
 
 class Edge(QGraphicsLineItem):
     def __init__(self, originVertex, linkVertex):
-        x1 = originVertex.x()
-        y1 = originVertex.y()
-        x2 = linkVertex.x()
-        y2 = linkVertex.y()
+        x1 = originVertex.x
+        y1 = originVertex.y
+        x2 = linkVertex.x
+        y2 = linkVertex.y
 
         super().__init__(x1, y1, x2, y2)
         self.setZValue(-1)
@@ -58,13 +58,11 @@ class Edge(QGraphicsLineItem):
         self._linkVertex = linkVertex
     
     def updatePosition(self):
-        newX1 = self._originVertex.x()
-        newY1 = self._originVertex.y()
-        newX2 = self._linkVertex.x()
-        newY2 = self._linkVertex.y()
+        newX1 = self._originVertex.x
+        newY1 = self._originVertex.y
+        newX2 = self._linkVertex.x
+        newY2 = self._linkVertex.y
         self.setLine(newX1, newY1, newX2, newY2)
-        # TODO: Remove debug print
-        print("Updated edge position", (newX1, newY1), (newX2, newY2))
 
 
 class Vertex(QGraphicsEllipseItem):
@@ -91,13 +89,13 @@ class Vertex(QGraphicsEllipseItem):
         item = CenteredTextItem(str(next_label), self)
         next_label += 1
 
+    @property
     def x(self):
-        # TODO: Update boundingRect() on drag
-        # boundingRect() is a constant and does not change on drag
-        return self.boundingRect().center().x()
+        return self.sceneBoundingRect().center().x()
     
+    @property
     def y(self):
-        return self.boundingRect().center().y()
+        return self.sceneBoundingRect().center().y()
     
     def addEdge(self, edge):
         self._edges.append(edge)
