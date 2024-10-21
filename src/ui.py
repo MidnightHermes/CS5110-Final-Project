@@ -46,16 +46,20 @@ class CenteredTextItem(QGraphicsSimpleTextItem):
 
 class Edge(QGraphicsLineItem):
     def __init__(self, originVertex, linkVertex):
-        x1 = originVertex.x
-        y1 = originVertex.y
-        x2 = linkVertex.x
-        y2 = linkVertex.y
+        x1 = originVertex.x()
+        y1 = originVertex.y()
+        x2 = linkVertex.x()
+        y2 = linkVertex.y()
 
         super().__init__(x1, y1, x2, y2)
         self.setZValue(-1)
 
         self._originVertex = originVertex
         self._linkVertex = linkVertex
+    
+    def updatePosition(self):
+        print("updating position")
+        self.setLine(self._originVertex.x(), self._originVertex.y(), self._linkVertex.x(), self._linkVertex.y())
 
 
 class Vertex(QGraphicsEllipseItem):
@@ -64,13 +68,12 @@ class Vertex(QGraphicsEllipseItem):
     CUR_EDGE = Qt.CursorShape.PointingHandCursor
 
     def __init__(self, x, y, d):
-        # Store the center of the vertex in x and y
-        self.x = x
-        self.y = y
         # By default, x and y correspond to the top-left
         # corner of the rect bounding the circle.
         cx = x - d/2
         cy = y - d/2
+
+        self._edges = []
 
         super().__init__(cx, cy, d, d)
 
@@ -82,6 +85,15 @@ class Vertex(QGraphicsEllipseItem):
         self.label = next_label
         item = CenteredTextItem(str(next_label), self)
         next_label += 1
+
+    def x(self):
+        self.boundingRect().center().x()
+    
+    def y(self):
+        self.boundingRect().center().y()
+    
+    def addEdge(self, edge):
+        self._edges.append(edge)
 
     def isSelectable(self):
         return self.cursor() == Vertex.CUR_SELECTABLE
@@ -105,6 +117,9 @@ class Vertex(QGraphicsEllipseItem):
 
             self.setCursor(Vertex.CUR_SELECTABLE)
             super().mouseReleaseEvent(e)
+
+            for edge in self._edges:
+                edge.updatePosition()
         else:
             e.ignore()
 
@@ -178,6 +193,8 @@ class Scene(QGraphicsScene):
             edge = Edge(self._originVertex, nearest_vertex)
             edge.setPen(self._circlePen)
 
+            self._originVertex.addEdge(edge)
+            nearest_vertex.addEdge(edge)
             self.edgeList.append(edge)
             self.addItem(edge)
             self._originVertex = None
