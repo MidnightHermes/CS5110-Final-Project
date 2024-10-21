@@ -202,7 +202,14 @@ class Scene(QGraphicsScene):
             self._originVertex = nearest_vertex
         else:
             # Catch case in which user clicks on empty space
-            if nearest_vertex is None:
+            if (nearest_vertex is None or
+                # or if user tries to connect a vertex to itself
+                nearest_vertex == self._originVertex or
+                # or if user tries to connect originVertex to a vertex it is already connected to
+                any(edge._linkVertex == nearest_vertex for edge in self._originVertex._edges) or
+                # or if user tries to connect a vertex to the originVertex that is already connected to it
+                any(edge._linkVertex == self._originVertex for edge in nearest_vertex._edges)):
+                print("Resetting vertex")
                 # Reset origin vertex anyways
                 self._originVertex = None
                 return
