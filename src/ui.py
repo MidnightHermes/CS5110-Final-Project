@@ -116,15 +116,18 @@ class Vertex(QGraphicsEllipseItem):
         else:
             e.ignore()
 
+    def mouseMoveEvent(self, e):
+        super().mouseMoveEvent(e)
+
+        for edge in self._edges:
+            edge.updatePosition()
+
     def mouseReleaseEvent(self, e):
         if (self.isDrag() and  # If currently dragging in select mode
             e.button() == Qt.MouseButton.LeftButton):
 
             self.setCursor(Vertex.CUR_SELECTABLE)
             super().mouseReleaseEvent(e)
-
-            for edge in self._edges:
-                edge.updatePosition()
         else:
             e.ignore()
 
