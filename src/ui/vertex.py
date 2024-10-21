@@ -8,8 +8,8 @@ class Vertex(QGraphicsEllipseItem):
     CUR_DRAG = Qt.CursorShape.ClosedHandCursor
     CUR_EDGE = Qt.CursorShape.PointingHandCursor
 
-    next_label = 0
-    created = 0
+    _next_label = 0
+    _created = 0
 
     def __init__(self, x, y, d):
         # By default, x and y correspond to the top-left
@@ -21,12 +21,12 @@ class Vertex(QGraphicsEllipseItem):
 
         super().__init__(cx, cy, d, d)
 
-        self.stamp = Vertex.created
-        Vertex.created += 1
+        self.stamp = Vertex._created
+        Vertex._created += 1
 
-        self.label = Vertex.next_label
-        item = CenteredTextItem(str(Vertex.next_label), self)
-        Vertex.next_label += 1
+        self.label = Vertex._next_label
+        item = CenteredTextItem(str(Vertex._next_label), self)
+        Vertex._next_label += 1
 
     @property
     def x(self):
