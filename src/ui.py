@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
     QGraphicsEllipseItem,
     QGraphicsItem,
     QGraphicsRectItem,
+    QGraphicsLineItem,
     QGraphicsScene,
     QGraphicsSimpleTextItem,
     QGraphicsView,
@@ -43,12 +44,29 @@ class CenteredTextItem(QGraphicsSimpleTextItem):
         self.setParentItem(parent)
 
 
+class Edge(QGraphicsLineItem):
+    def __init__(self, originVertex, linkVertex):
+        x1 = originVertex.x
+        y1 = originVertex.y
+        x2 = linkVertex.x
+        y2 = linkVertex.y
+
+        super().__init__(x1, y1, x2, y2)
+        self.setZValue(-1)
+
+        self._originVertex = originVertex
+        self._linkVertex = linkVertex
+
+
 class Vertex(QGraphicsEllipseItem):
     CUR_SELECTABLE = Qt.CursorShape.OpenHandCursor
     CUR_DRAG = Qt.CursorShape.ClosedHandCursor
     CUR_EDGE = Qt.CursorShape.PointingHandCursor
 
     def __init__(self, x, y, d):
+        # Store the center of the vertex in x and y
+        self.x = x
+        self.y = y
         # By default, x and y correspond to the top-left
         # corner of the rect bounding the circle.
         cx = x - d/2
@@ -101,11 +119,15 @@ class Scene(QGraphicsScene):
         # Brush describes the inside of a shape
         self._circleBrush = QBrush(Qt.GlobalColor.white)
 
-        # List of vertices created. Can possibly make it a set?
+        # List of vertices and edges created. Can possibly make it a set?
         self.vertexList = []
+        self.edgeList = []
 
         self._isSelectMode = False
         self._isVertexMode = False
+        self._isEdgeMode = False
+
+        self._originVertex = None
 
     def toggleSelectMode(self, b):
         self._isSelectMode = b
@@ -124,9 +146,8 @@ class Scene(QGraphicsScene):
         self._isVertexMode = b
 
     def toggleEdgeMode(self, b):
+        self._isEdgeMode = b
         # TODO: make vertices bubble out a little when hovered over
-
-        # TODO: actual edge drawing functionality
 
         for v in self.vertexList:
             if b:
@@ -141,6 +162,34 @@ class Scene(QGraphicsScene):
             return max(underMouse, key=lambda v: v.stamp)
         except ValueError:  # If underMouse is an empty list
             return None
+    
+    def addEdge(self, e):
+        # TODO: Do not draw an edge between two vertices that already have an edge drawn between them
+
+        e.accept()
+
+        x = e.scenePos().x()
+        y = e.scenePos().y()
+
+        nearest_vertex = self.getVertexUnderMouse()
+        if self._originVertex is None:
+            self._originVertex = nearest_vertex
+        else:
+            edge = Edge(self._originVertex, nearest_vertex)
+            edge.setPen(self._circlePen)
+
+            self.edgeList.append(edge)
+            self.addItem(edge)
+            self._originVertex = None
+
+    def removeEdge(self, e):
+        e.accept()
+
+        toBeRemoved = self.getEdgeUnderMouse() # TODO: Implement getEdgeUnderMouse
+
+        if toBeRemoved is not None:
+            self.removeItem(toBeRemoved)
+            self.edgeList.remove(toBeRemoved)
 
     def addVertex(self, e):
         e.accept()
@@ -162,6 +211,7 @@ class Scene(QGraphicsScene):
             
         if toBeRemoved is not None:
             self.removeItem(toBeRemoved)
+            self.vertexList.remove(toBeRemoved)
 
     def mousePressEvent(self, e):
         if self._isSelectMode:
@@ -171,6 +221,11 @@ class Scene(QGraphicsScene):
                 self.addVertex(e)
             if e.button() == Qt.MouseButton.RightButton:
                 self.removeVertex(e)
+        elif self._isEdgeMode:
+            if e.button() == Qt.MouseButton.LeftButton:
+                self.addEdge(e)
+            if e.button() == Qt.MouseButton.RightButton:
+                self.removeEdge(e)
 
 class Window(QWidget):
     def __init__(self):
