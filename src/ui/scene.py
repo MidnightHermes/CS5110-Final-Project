@@ -93,21 +93,24 @@ class Scene(QGraphicsScene):
                 self._originVertex = None
                 return
             edge = Edge(self._originVertex, nearest_vertex)
-            edge.setPen(self._circlePen)
 
             self._originVertex.addEdge(edge)
             nearest_vertex.addEdge(edge)
             self.edgeList.append(edge)
+            # Add edge _and_ cosmetic edge to scene
             self.addItem(edge)
+            self.addItem(edge._cosmeticLine)
             self._originVertex = None
 
     def removeEdge(self, e):
         e.accept()
 
-        toBeRemoved = self.getEdgeUnderMouse() # TODO: Implement getEdgeUnderMouse
+        toBeRemoved = self.getEdgeUnderMouse()
 
         if toBeRemoved is not None:
+            # Remove invisible edge _and_ cosmetic edge from scene
             self.removeItem(toBeRemoved)
+            self.removeItem(toBeRemoved._cosmeticLine)
             self.edgeList.remove(toBeRemoved)
             toBeRemoved._originVertex._edges.remove(toBeRemoved)
 
