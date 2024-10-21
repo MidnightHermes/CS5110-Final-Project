@@ -96,14 +96,18 @@ class Vertex(QGraphicsEllipseItem):
     @property
     def y(self):
         return self.sceneBoundingRect().center().y()
-    
+
     def addEdge(self, edge):
         self._edges.append(edge)
+
+    def updateEdges(self):
+        for edge in self._edges:
+            edge.updatePosition()
 
     def isSelectable(self):
         return self.cursor() == Vertex.CUR_SELECTABLE
 
-    def isDrag(self):
+    def isDrag(self): # TODO: maybe make more rigorous
         return self.cursor() == Vertex.CUR_DRAG
 
     def mousePressEvent(self, e):
@@ -119,8 +123,7 @@ class Vertex(QGraphicsEllipseItem):
     def mouseMoveEvent(self, e):
         super().mouseMoveEvent(e)
 
-        for edge in self._edges:
-            edge.updatePosition()
+        self.scene().verticesMoved()
 
     def mouseReleaseEvent(self, e):
         if (self.isDrag() and  # If currently dragging in select mode
@@ -237,6 +240,10 @@ class Scene(QGraphicsScene):
         if toBeRemoved is not None:
             self.removeItem(toBeRemoved)
             self.vertexList.remove(toBeRemoved)
+
+    def verticesMoved(self):
+        for v in self.vertexList:
+            v.updateEdges()
 
     def mousePressEvent(self, e):
         if self._isSelectMode:
