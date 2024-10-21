@@ -190,8 +190,6 @@ class Scene(QGraphicsScene):
             return None
     
     def addEdge(self, e):
-        # TODO: Do not draw an edge between two vertices that already have an edge drawn between them
-
         e.accept()
 
         x = e.scenePos().x()
