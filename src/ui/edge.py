@@ -61,16 +61,16 @@ class DirectedEdge(Edge):
         self._arrowHead.setZValue(-2)
     
     def getArrowPos(self):
+        # DESMOS GRAPH
+        # https://www.desmos.com/calculator/znhdm9hqgx
         vertexRadius = 17.5
         arrowSize = 15
 
-        linkPosX, linkPosY = (self._linkVertex.x, self._linkVertex.y)
-
         # Establish our starting points
         x1 = self._originVertex.x
-        x2 = linkPosX
+        x2 = self._linkVertex.x
         y1 = self._originVertex.y
-        y2 = linkPosY
+        y2 = self._linkVertex.y
 
         # Calculate the slope of the line intersecting our starting points
         dy = (y2 - y1)
