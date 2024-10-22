@@ -120,6 +120,7 @@ class Scene(QGraphicsScene):
             self.removeItem(toBeRemoved._cosmeticLine)
             self.edgeList.remove(toBeRemoved)
             toBeRemoved._originVertex._edges.remove(toBeRemoved)
+            toBeRemoved._linkVertex._edges.remove(toBeRemoved)
 
     def addVertex(self, e):
         e.accept()
