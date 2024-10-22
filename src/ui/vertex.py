@@ -1,9 +1,12 @@
-from PyQt6.QtCore import Qt
+import math
+from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtWidgets import QGraphicsEllipseItem
 from ui.centered_text_item import CenteredTextItem
 
 
 class Vertex(QGraphicsEllipseItem):
+    DIAMETER = 50
+
     CUR_SELECTABLE = Qt.CursorShape.OpenHandCursor
     CUR_DRAG = Qt.CursorShape.ClosedHandCursor
     CUR_EDGE = Qt.CursorShape.PointingHandCursor
@@ -11,9 +14,10 @@ class Vertex(QGraphicsEllipseItem):
     _next_label = 0
     _created = 0
 
-    def __init__(self, x, y, d):
+    def __init__(self, x, y, d=DIAMETER):
         # By default, x and y correspond to the top-left
         # corner of the rect bounding the circle.
+        self._diameter = d
         cx = x - d/2
         cy = y - d/2
 
@@ -35,6 +39,19 @@ class Vertex(QGraphicsEllipseItem):
     @property
     def y(self):
         return self.sceneBoundingRect().center().y()
+
+    def getRadiusIntersect(self, other):
+        radius = self._diameter / 2
+
+        dx = self.x - other.x
+        dy = self.y - other.y
+
+        theta = math.atan2(dy, dx)
+
+        xOffs = radius * math.cos(theta)
+        yOffs = radius * math.sin(theta)
+
+        return QPointF(self.x + xOffs, self.y + yOffs)
 
     def addEdge(self, edge):
         self._edges.append(edge)

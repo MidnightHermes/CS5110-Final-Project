@@ -63,7 +63,6 @@ class DirectedEdge(Edge):
     def getArrowPos(self):
         # DESMOS GRAPH
         # https://www.desmos.com/calculator/znhdm9hqgx
-        vertexRadius = 17.5
         arrowSize = 15
 
         # Establish our starting points
@@ -80,7 +79,7 @@ class DirectedEdge(Edge):
 
         # Calculate the intersection points of our line and a perpendicular line
         m_inv = 1/m
-        x_int = (y2 + (m_inv) * x2 + arrowSize - b) / (m + (m_inv)) - vertexRadius
+        x_int = (y2 + (m_inv) * x2 + arrowSize - b) / (m + (m_inv)) - 25
         y_int = m * x_int + b
 
         # Determine the two points equidistant from the intersection points
@@ -101,7 +100,7 @@ class DirectedEdge(Edge):
         uy = m / math.sqrt(1 + m**2)
         tipX = x_int + arrowSize * ux
         tipY = y_int + arrowSize * uy
-        tip = QPointF(tipX, tipY)
+        tip = self._linkVertex.getRadiusIntersect(self._originVertex)
 
         return QPolygonF([tip, p1, p2])
     
