@@ -55,21 +55,19 @@ class Scene(QGraphicsScene):
             else:
                 v.unsetCursor()
 
-    def getVertexUnderMouse(self):
-        underMouse = filter(Vertex.isUnderMouse, self.vertexList)
+    def getItemUnderMouse(self, cls, itemList):
+        underMouse = filter(cls.isUnderMouse, itemList)
 
         try:
-            return max(underMouse, key=lambda v: v.stamp)
-        except ValueError:  # If underMouse is an empty list
+            return max(underMouse, key=lambda i: i.stamp)
+        except ValueError:
             return None
+
+    def getVertexUnderMouse(self):
+        return self.getItemUnderMouse(Vertex, self.vertexList)
 
     def getEdgeUnderMouse(self):
-        underMouse = filter(Edge.isUnderMouse, self.edgeList)
-
-        try:
-            return max(underMouse, key=lambda e: e.stamp)
-        except ValueError:  # If underMouse is an empty list
-            return None
+        return self.getItemUnderMouse(Edge, self.edgeList)
     
     def addEdge(self, e):
         e.accept()
