@@ -1,3 +1,4 @@
+import networkx as nx
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QPen
 from PyQt6.QtWidgets import (
@@ -11,6 +12,8 @@ from ui.edge import Edge
 class Scene(QGraphicsScene):
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
+
+        self._graph = nx.Graph()
 
         # Pen describes the outline of a shape.
         self._circlePen = QPen(Qt.GlobalColor.black)
@@ -92,6 +95,8 @@ class Scene(QGraphicsScene):
                 return
             edge = Edge(self._originVertex, nearest_vertex)
 
+            self._graph.add_edge(self._originVertex.label, nearest_vertex.label)
+
             self._originVertex.addEdge(edge)
             nearest_vertex.addEdge(edge)
             self.edgeList.append(edge)
@@ -106,11 +111,16 @@ class Scene(QGraphicsScene):
         toBeRemoved = self.getEdgeUnderMouse()
 
         if toBeRemoved is not None:
+            fromLabel = toBeRemoved._originVertex.label
+            toLabel = toBeRemoved._linkVertex.label
+            self._graph.remove_edge(fromLabel, toLabel)
+
             # Remove invisible edge _and_ cosmetic edge from scene
             self.removeItem(toBeRemoved)
             self.removeItem(toBeRemoved._cosmeticLine)
             self.edgeList.remove(toBeRemoved)
             toBeRemoved._originVertex._edges.remove(toBeRemoved)
+            toBeRemoved._linkVertex._edges.remove(toBeRemoved)
 
     def addVertex(self, e):
         e.accept()
@@ -121,6 +131,8 @@ class Scene(QGraphicsScene):
         vertex = Vertex(x, y, 50)
         vertex.setPen(self._circlePen)
         vertex.setBrush(self._circleBrush)
+
+        self._graph.add_node(vertex.label)
         
         self.vertexList.append(vertex)
         self.addItem(vertex)
@@ -131,6 +143,8 @@ class Scene(QGraphicsScene):
         toBeRemoved = self.getVertexUnderMouse()
             
         if toBeRemoved is not None:
+            self._graph.remove_node(toBeRemoved.label)
+
             self.removeItem(toBeRemoved)
             self.vertexList.remove(toBeRemoved)
 
