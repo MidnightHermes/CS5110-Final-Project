@@ -1,5 +1,5 @@
 import math
-from PyQt6.QtCore import Qt, QPointF
+from PyQt6.QtCore import Qt, QPointF, QRectF
 from PyQt6.QtGui import QPen, QPolygonF, QBrush
 from PyQt6.QtWidgets import QGraphicsLineItem, QGraphicsPolygonItem
 
@@ -53,57 +53,54 @@ class Edge(QGraphicsLineItem):
         self._cosmeticLine.setLine(newX1, newY1, newX2, newY2)
 
 class DirectedEdge(Edge):
+    ARROW_HEIGHT = 25
+    ARROW_WIDTH = 20
+
     def __init__(self, originVertex, linkVertex):
         super().__init__(originVertex, linkVertex)
         
-        self._arrowHead = QGraphicsPolygonItem(self.getArrowPos())
+        qpf = self.getArrow()
+        self._arrowHead = QGraphicsPolygonItem(self.getArrow())
         self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
-        self._arrowHead.setZValue(-2)
+        self._arrowHead.setZValue(30)
+
+
     
-    def getArrowPos(self):
-        # DESMOS GRAPH
-        # https://www.desmos.com/calculator/znhdm9hqgx
-        arrowSize = 15
+    def getArrow(self):
+        r = self._linkVertex.radius
 
-        # Establish our starting points
-        x1 = self._originVertex.x
-        x2 = self._linkVertex.x
-        y1 = self._originVertex.y
-        y2 = self._linkVertex.y
+        dx = self.line().dx()
+        dy = self.line().dy()
+    
+        origin = self.line().p2()
 
-        # Calculate the slope of the line intersecting our starting points
-        dy = (y2 - y1)
-        dx = (x2 - x1)
-        m = dy / dx if dx != 0 else 0
-        b = y1 - m * x1
+        theta = math.atan2(dy, dx)
 
-        # Calculate the intersection points of our line and a perpendicular line
-        m_inv = 1/m
-        x_int = (y2 + (m_inv) * x2 + arrowSize - b) / (m + (m_inv)) - 25
-        y_int = m * x_int + b
+        cos = math.cos(theta)
+        sin = math.sin(theta)
 
-        # Determine the two points equidistant from the intersection points
-        ux = 1 / math.sqrt(1 + (m_inv)**2)
-        uy = (-m_inv) / math.sqrt(1 + (m_inv)**2)
+        cossin = QPointF(cos, sin)
 
-        x1 = x_int + (arrowSize / 2) * ux
-        y1 = y_int + (arrowSize / 2) * uy
+        # Tip of the arrow head
+        tipOffs = r * cossin
+        tip = origin - tipOffs
 
-        x2 = x_int - (arrowSize / 2) * ux
-        y2 = y_int - (arrowSize / 2) * uy
+        # Coordinate of where the base of the arrowhead
+        # intersects the line
+        baseOffs = self.ARROW_HEIGHT * cossin
+        basePoint = tip - baseOffs
 
-        # Finally, create the two points making the corners of the arrow head
-        p1 = QPointF(x1, y1)
-        p2 = QPointF(x2, y2)
-        # And the tip of the arrow head
-        ux = 1 / math.sqrt(1 + m**2)
-        uy = m / math.sqrt(1 + m**2)
-        tipX = x_int + arrowSize * ux
-        tipY = y_int + arrowSize * uy
-        tip = self._linkVertex.getRadiusIntersect(self._originVertex)
+        # Calculate left and right wings of the arrowhead
+        normal = theta + math.pi / 2
+        wingOffs = (self.ARROW_WIDTH / 2) * QPointF(math.cos(normal), math.sin(normal))
 
-        return QPolygonF([tip, p1, p2])
+        leftWing = basePoint - wingOffs
+        rightWing = basePoint + wingOffs
+
+        return QPolygonF([tip, leftWing, rightWing])
+
     
     def updatePosition(self):
         super().updatePosition()
-        self._arrowHead.setPolygon(self.getArrowPos())
+        self._arrowHead.setPolygon(self.getArrow())
+

@@ -40,18 +40,27 @@ class Vertex(QGraphicsEllipseItem):
     def y(self):
         return self.sceneBoundingRect().center().y()
 
-    def getRadiusIntersect(self, other):
-        radius = self._diameter / 2
+    @property
+    def diameter(self):
+        return self._diameteer
+
+    @property
+    def radius(self):
+        return self._diameter / 2
+
+    def getRadiusIntersect(self, other, r=None):
+        if r is None:
+            r = self._diameter / 2
 
         dx = self.x - other.x
         dy = self.y - other.y
 
         theta = math.atan2(dy, dx)
 
-        xOffs = radius * math.cos(theta)
-        yOffs = radius * math.sin(theta)
+        xOffs = r * math.cos(theta)
+        yOffs = r * math.sin(theta)
 
-        return QPointF(self.x + xOffs, self.y + yOffs)
+        return QPointF(self.x - xOffs, self.y - yOffs)
 
     def addEdge(self, edge):
         self._edges.append(edge)
