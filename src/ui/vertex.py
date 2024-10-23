@@ -1,6 +1,7 @@
 import math
 from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtWidgets import QGraphicsEllipseItem
+
 from ui.centered_text_item import CenteredTextItem
 
 

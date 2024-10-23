@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsScene,
 )
+
 from ui.vertex import Vertex
 from ui.edge import Edge, DirectedEdge
 
@@ -101,9 +102,9 @@ class Scene(QGraphicsScene):
             nearest_vertex.addEdge(edge)
             self.edgeList.append(edge)
             # Add edge _and_ cosmetic edge to scene
-            self.addItem(edge._arrowHead)
             self.addItem(edge)
-            self.addItem(edge._cosmeticLine)
+            self.addItem(edge._hitBox)
+            self.addItem(edge._arrowHead)
             self._originVertex = None
 
     def removeEdge(self, e):

@@ -3,11 +3,13 @@ from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtGui import QPen, QPolygonF, QBrush
 from PyQt6.QtWidgets import QGraphicsLineItem, QGraphicsPolygonItem
 
+from ui.centered_text_item import EdgeWeightTextItem
+
 
 class Edge(QGraphicsLineItem):
     _created = 0
 
-    def __init__(self, originVertex, linkVertex):
+    def __init__(self, originVertex, linkVertex, weight=1):
         x1 = originVertex.x
         y1 = originVertex.y
         x2 = linkVertex.x
@@ -16,35 +18,34 @@ class Edge(QGraphicsLineItem):
         # Create an invisible line that is 4x as thick as the visible line
         #   to make it easier to grab the edge.
         super().__init__(x1, y1, x2, y2)
-        self.setZValue(-1)
-        linePen = QPen(Qt.GlobalColor.black)
-        linePen.setWidth(12)
-        self.setPen(linePen)
-        self.setOpacity(0.0)
+        self.setZValue(-2)
+        self._linePen = QPen(Qt.GlobalColor.black)
+        self._linePen.setWidth(3)
+        self.setPen(self._linePen)
 
         # Then create a cosmetic (visible) line that is behind the invisible line.
         #   This is the line that the user sees.
         # Since this line is behind the invisible line, the user can only interact
         #   with the invisible line, as such this visible line is purely cosmetic.
-        self._cosmeticLine = self.createCosmeticLine(x1, y1, x2, y2)
+        self._hitBox = self.createHitBox(x1, y1, x2, y2)
 
         self.stamp = Edge._created
         Edge._created += 1
 
+        self._weight = EdgeWeightTextItem(str(weight), self)
+
         self._originVertex = originVertex
         self._linkVertex = linkVertex
 
+    def createHitBox(self, x1, y1, x2, y2):
+        hitBox = QGraphicsLineItem(x1, y1, x2, y2)
+        hitBox.setZValue(-1)
 
-    def createCosmeticLine(self, x1, y1, x2, y2):
-        cosmeticLine = QGraphicsLineItem(x1, y1, x2, y2)
-        cosmeticLine.setZValue(-2)
-        
-        linePen = QPen(Qt.GlobalColor.black)
-        linePen.setWidth(3)
-        cosmeticLine.setPen(linePen)
+        self._linePen.setWidth(12)
+        hitBox.setPen(self._linePen)
+        hitBox.setOpacity(0.0)
 
-        return cosmeticLine
-
+        return hitBox
 
     def updatePosition(self):
         newX1 = self._originVertex.x
@@ -52,7 +53,8 @@ class Edge(QGraphicsLineItem):
         newX2 = self._linkVertex.x
         newY2 = self._linkVertex.y
         self.setLine(newX1, newY1, newX2, newY2)
-        self._cosmeticLine.setLine(newX1, newY1, newX2, newY2)
+        self._hitBox.setLine(newX1, newY1, newX2, newY2)
+        self._weight.setPos(self._weight.determinePosition())
 
 
 class DirectedEdge(Edge):
@@ -65,7 +67,6 @@ class DirectedEdge(Edge):
         self._arrowHead = QGraphicsPolygonItem(self.getArrow())
         self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
         self._arrowHead.setZValue(-1)
-
 
     def getArrow(self):
         r = self._linkVertex.radius
@@ -99,7 +100,6 @@ class DirectedEdge(Edge):
         rightWing = basePoint + wingOffs
 
         return QPolygonF([tip, leftWing, rightWing])
-
 
     def updatePosition(self):
         super().updatePosition()
