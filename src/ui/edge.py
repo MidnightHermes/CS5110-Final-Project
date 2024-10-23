@@ -1,5 +1,5 @@
 import math
-from PyQt6.QtCore import Qt, QPointF, QRectF
+from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtGui import QPen, QPolygonF, QBrush
 from PyQt6.QtWidgets import QGraphicsLineItem, QGraphicsPolygonItem
 
@@ -33,7 +33,8 @@ class Edge(QGraphicsLineItem):
 
         self._originVertex = originVertex
         self._linkVertex = linkVertex
-    
+
+
     def createCosmeticLine(self, x1, y1, x2, y2):
         cosmeticLine = QGraphicsLineItem(x1, y1, x2, y2)
         cosmeticLine.setZValue(-2)
@@ -43,7 +44,8 @@ class Edge(QGraphicsLineItem):
         cosmeticLine.setPen(linePen)
 
         return cosmeticLine
-    
+
+
     def updatePosition(self):
         newX1 = self._originVertex.x
         newY1 = self._originVertex.y
@@ -52,20 +54,19 @@ class Edge(QGraphicsLineItem):
         self.setLine(newX1, newY1, newX2, newY2)
         self._cosmeticLine.setLine(newX1, newY1, newX2, newY2)
 
+
 class DirectedEdge(Edge):
     ARROW_HEIGHT = 25
     ARROW_WIDTH = 20
 
     def __init__(self, originVertex, linkVertex):
         super().__init__(originVertex, linkVertex)
-        
-        qpf = self.getArrow()
+
         self._arrowHead = QGraphicsPolygonItem(self.getArrow())
         self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
-        self._arrowHead.setZValue(30)
+        self._arrowHead.setZValue(-1)
 
 
-    
     def getArrow(self):
         r = self._linkVertex.radius
 
@@ -99,8 +100,7 @@ class DirectedEdge(Edge):
 
         return QPolygonF([tip, leftWing, rightWing])
 
-    
+
     def updatePosition(self):
         super().updatePosition()
         self._arrowHead.setPolygon(self.getArrow())
-
