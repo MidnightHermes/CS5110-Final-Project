@@ -1,3 +1,4 @@
+import math
 from PyQt6.QtCore import QPointF
 from PyQt6.QtWidgets import QGraphicsSimpleTextItem
 
@@ -31,12 +32,9 @@ class EdgeWeightTextItem(CenteredTextItem):
     def determinePosition(self):
         dx = self._parent.line().dx()
         dy = self._parent.line().dy()
-        slope = dy / dx if dx != 0 else 0
-        b = self._parent.line().p2().y() - slope * self._parent.line().p2().x()
+        theta = math.atan2(dy, dx)
+        normal = theta + math.pi / 2
+        offset = 10 * QPointF(math.cos(normal), math.sin(normal))
+        basePoint = self._parent.line().center()
 
-        if b < 0 or slope < 0:
-            direction = -1
-        else:
-            direction = 1
-
-        return self._parent.line().center() + (direction * QPointF(10, 10))
+        return basePoint + offset if theta < 0.33 * math.pi and theta > -0.67 * math.pi else basePoint - offset

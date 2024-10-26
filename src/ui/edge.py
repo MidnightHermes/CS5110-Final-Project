@@ -61,8 +61,8 @@ class DirectedEdge(Edge):
     ARROW_HEIGHT = 25
     ARROW_WIDTH = 20
 
-    def __init__(self, originVertex, linkVertex):
-        super().__init__(originVertex, linkVertex)
+    def __init__(self, originVertex, linkVertex, weight=1):
+        super().__init__(originVertex, linkVertex, weight)
 
         self._arrowHead = QGraphicsPolygonItem(self.getArrow())
         self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
