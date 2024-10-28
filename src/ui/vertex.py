@@ -2,7 +2,7 @@ import math
 from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtWidgets import QGraphicsEllipseItem
 
-from ui.centered_text_item import CenteredTextItem
+from ui.text_items import TextItems
 
 
 class Vertex(QGraphicsEllipseItem):
@@ -30,7 +30,7 @@ class Vertex(QGraphicsEllipseItem):
         Vertex._created += 1
 
         self.label = Vertex._next_label
-        item = CenteredTextItem(str(Vertex._next_label), self)
+        item = TextItems(str(Vertex._next_label), self)
         Vertex._next_label += 1
 
     @property

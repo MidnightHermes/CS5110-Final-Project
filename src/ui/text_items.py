@@ -2,7 +2,7 @@ import math
 from PyQt6.QtCore import QPointF
 from PyQt6.QtWidgets import QGraphicsSimpleTextItem
 
-class CenteredTextItem(QGraphicsSimpleTextItem):
+class TextItems(QGraphicsSimpleTextItem):
     def __init__(self, text, parent, pos=None):
         super().__init__(text, parent)
         self._parent = parent
@@ -22,7 +22,7 @@ class CenteredTextItem(QGraphicsSimpleTextItem):
         rHeight = self.sceneBoundingRect().height()
         return self._pos - QPointF(rWidth / 2, rHeight / 2)
 
-class EdgeWeightTextItem(CenteredTextItem):
+class EdgeWeightTextItem(TextItems):
     def __init__(self, text, parent, pos=None):
         self._parent = parent
         self._pos = pos

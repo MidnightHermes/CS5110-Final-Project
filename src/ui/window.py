@@ -48,7 +48,7 @@ class Window(QWidget):
         weight_input = QLineEdit("")
         weight_input.setPlaceholderText("Enter weight")
         weight_input.setEnabled(False)
-        weight_input.textChanged.connect(self.scene.setEdgeWeight)
+        weight_input.textEdited.connect(self.scene.setEdgeWeight)
         vbox.addWidget(weight_input)
 
         # Grey out weight input when edge mode is not selected

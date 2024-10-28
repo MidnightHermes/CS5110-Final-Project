@@ -87,9 +87,6 @@ class Scene(QGraphicsScene):
     def addEdge(self, e):
         e.accept()
 
-        x = e.scenePos().x()
-        y = e.scenePos().y()
-
         nearest_vertex = self.getVertexUnderMouse()
         if self._originVertex is None:
             self._originVertex = nearest_vertex

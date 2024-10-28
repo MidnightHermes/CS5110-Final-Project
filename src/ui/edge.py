@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtGui import QPen, QPolygonF, QBrush
 from PyQt6.QtWidgets import QGraphicsLineItem, QGraphicsPolygonItem
 
-from ui.centered_text_item import EdgeWeightTextItem
+from ui.text_items import EdgeWeightTextItem
 
 
 class Edge(QGraphicsLineItem):
