@@ -59,16 +59,24 @@ class Edge(QGraphicsLineItem):
         self._hitBox.setLine(newX1, newY1, newX2, newY2)
         self._weight.setPos(self._weight.determinePosition())
 
-    def remove(self):
+    def remove(self, call_backend=True, caller=None):
         scene = self.scene()
+
+        if call_backend:
+            fromLabel = self._originVertex.label
+            toLabel = self._linkVertex.label
+            scene._graph.remove_edge(fromLabel, toLabel)
 
         scene.edgeList.remove(self)
 
-        scene.removeItem(self._hitBox)
         scene.removeItem(self)
-
-        self._originVertex._edges.remove(self)
-        self._linkVertex._edges.remove(self)
+       
+        # need caller so we don't mutate a list that
+        # is being iterated through in Vertex.remove()
+        if caller is not self._originVertex:
+            self._originVertex._edges.remove(self)
+        if caller is not self._linkVertex:
+            self._linkVertex._edges.remove(self)
         
 
 

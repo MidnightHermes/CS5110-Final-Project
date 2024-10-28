@@ -123,10 +123,6 @@ class Scene(QGraphicsScene):
         toBeRemoved = self.getEdgeUnderMouse()
 
         if toBeRemoved is not None:
-            fromLabel = toBeRemoved._originVertex.label
-            toLabel = toBeRemoved._linkVertex.label
-            self._graph.remove_edge(fromLabel, toLabel)
-
             toBeRemoved.remove()
 
     def addVertex(self, e):
@@ -148,12 +144,9 @@ class Scene(QGraphicsScene):
         e.accept()
 
         toBeRemoved = self.getVertexUnderMouse()
-            
-        if toBeRemoved is not None:
-            self._graph.remove_node(toBeRemoved.label)
 
-            self.removeItem(toBeRemoved)
-            self.vertexList.remove(toBeRemoved)
+        if toBeRemoved is not None:
+            toBeRemoved.remove()
 
     def verticesMoved(self):
         for v in self.vertexList:
