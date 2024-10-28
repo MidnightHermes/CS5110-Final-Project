@@ -52,8 +52,7 @@ class Window(QWidget):
         vbox.addWidget(weight_input)
 
         # Grey out weight input when edge mode is not selected
-        def toggle_weight_input():
-            weight_input.setEnabled(edge_mode.isChecked())
+        toggle_weight_input = lambda: weight_input.setEnabled(edge_mode.isChecked())
         edge_mode.toggled.connect(toggle_weight_input)
 
         mode_group = QButtonGroup()
