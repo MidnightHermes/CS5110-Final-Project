@@ -115,7 +115,6 @@ class Scene(QGraphicsScene):
             # Add edge _and_ cosmetic edge to scene
             self.addItem(edge)
             self.addItem(edge._hitBox)
-            self.addItem(edge._arrowHead)
             self._originVertex = None
 
     def removeEdge(self, e):
@@ -128,12 +127,7 @@ class Scene(QGraphicsScene):
             toLabel = toBeRemoved._linkVertex.label
             self._graph.remove_edge(fromLabel, toLabel)
 
-            # Remove invisible edge _and_ cosmetic edge from scene
-            self.removeItem(toBeRemoved)
-            self.removeItem(toBeRemoved._cosmeticLine)
-            self.edgeList.remove(toBeRemoved)
-            toBeRemoved._originVertex._edges.remove(toBeRemoved)
-            toBeRemoved._linkVertex._edges.remove(toBeRemoved)
+            toBeRemoved.remove()
 
     def addVertex(self, e):
         e.accept()
