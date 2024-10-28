@@ -75,15 +75,6 @@ class Scene(QGraphicsScene):
     def getEdgeUnderMouse(self):
         return self.getItemUnderMouse(Edge, self.edgeList)
     
-    def setEdgeWeight(self, weight):
-        try:
-            # TODO: Decide how to bound weights, e.g. allow negatives? allow floats? if only int, how to round floats?
-            self.weight = int(math.floor(float(weight)))
-        except ValueError:
-            # TODO: decide what to do when weight is not a number
-            self.weight = 1
-            print(f"Error evaluating weight, defaulting to 1: {weight}")
-    
     def addEdge(self, e):
         e.accept()
 

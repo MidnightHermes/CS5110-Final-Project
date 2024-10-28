@@ -6,6 +6,15 @@ from PyQt6.QtWidgets import QGraphicsLineItem, QGraphicsPolygonItem
 from ui.text_items import EdgeWeightTextItem
 
 
+_weight = 1
+def validateWeight(weight):
+    try:
+        _weight = float(weight)
+    except ValueError:
+        _weight = 1
+        print(f"Error evaluating weight, defaulting to 1: {weight}")
+
+
 class Edge(QGraphicsLineItem):
     _created = 0
 
