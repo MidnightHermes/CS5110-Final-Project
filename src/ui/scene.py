@@ -1,3 +1,4 @@
+import math
 import networkx as nx
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QPen
@@ -32,6 +33,7 @@ class Scene(QGraphicsScene):
         self._isEdgeMode = False
 
         self._originVertex = None
+        self.weight = 1
 
     def toggleSelectMode(self, b):
         self._isSelectMode = b
@@ -73,6 +75,15 @@ class Scene(QGraphicsScene):
     def getEdgeUnderMouse(self):
         return self.getItemUnderMouse(Edge, self.edgeList)
     
+    def setEdgeWeight(self, weight):
+        try:
+            # TODO: Decide how to bound weights, e.g. allow negatives? allow floats? if only int, how to round floats?
+            self.weight = int(math.floor(float(weight)))
+        except ValueError:
+            # TODO: decide what to do when weight is not a number
+            self.weight = 1
+            print(f"Error evaluating weight, defaulting to 1: {weight}")
+    
     def addEdge(self, e):
         e.accept()
 
@@ -94,9 +105,9 @@ class Scene(QGraphicsScene):
                 # Reset origin vertex anyways
                 self._originVertex = None
                 return
-            edge = DirectedEdge(self._originVertex, nearest_vertex)
+            edge = DirectedEdge(self._originVertex, nearest_vertex, self.weight)
 
-            self._graph.add_edge(self._originVertex.label, nearest_vertex.label)
+            self._graph.add_edge(self._originVertex.label, nearest_vertex.label, weight=self.weight)
 
             self._originVertex.addEdge(edge)
             nearest_vertex.addEdge(edge)

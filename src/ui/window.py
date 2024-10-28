@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (
     QRadioButton,
     QVBoxLayout,
     QWidget,
+    QLineEdit,
 )
 
 from ui.scene import Scene
@@ -43,6 +44,17 @@ class Window(QWidget):
         edge_mode = QRadioButton("Edges")
         edge_mode.toggled.connect(self.scene.toggleEdgeMode)
         vbox.addWidget(edge_mode)
+
+        weight_input = QLineEdit("")
+        weight_input.setPlaceholderText("Enter weight")
+        weight_input.setEnabled(False)
+        weight_input.textChanged.connect(self.scene.setEdgeWeight)
+        vbox.addWidget(weight_input)
+
+        # Grey out weight input when edge mode is not selected
+        def toggle_weight_input():
+            weight_input.setEnabled(edge_mode.isChecked())
+        edge_mode.toggled.connect(toggle_weight_input)
 
         mode_group = QButtonGroup()
         mode_group.addButton(select_mode)
