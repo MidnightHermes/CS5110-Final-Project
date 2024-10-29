@@ -7,20 +7,21 @@ from ui.text_items import EdgeWeightTextItem
 
 
 _weight = 1
-def validateWeight(weight):
+def validateWeight(weight: str):
     global _weight
 
     try:
         _weight = float(weight)
     except ValueError:
-        _weight = 1
-        print(f"Error evaluating weight, defaulting to 1: {weight}")
-
+        pass
 
 class Edge(QGraphicsLineItem):
     _created = 0
 
-    def __init__(self, originVertex, linkVertex):
+    def __init__(self, originVertex, linkVertex, weight=None):
+        if weight is None:
+            weight = _weight
+
         x1 = originVertex.x
         y1 = originVertex.y
         x2 = linkVertex.x
@@ -53,7 +54,7 @@ class Edge(QGraphicsLineItem):
     def weight(self):
         return self._weight
 
-    def createHitBox(self, x1, y1, x2, y2):
+    def createHitBox(self, x1, y1, x2, y2) -> QGraphicsLineItem:
         hitBox = QGraphicsLineItem(x1, y1, x2, y2)
         hitBox.setZValue(-1)
 
@@ -63,7 +64,7 @@ class Edge(QGraphicsLineItem):
 
         return hitBox
 
-    def isUnderMouse(self):
+    def isUnderMouse(self) -> bool:
         return self._hitBox.isUnderMouse()
 
     def updatePosition(self):
@@ -95,19 +96,18 @@ class Edge(QGraphicsLineItem):
             self._linkVertex._edges.remove(self)
         
 
-
 class DirectedEdge(Edge):
     ARROW_HEIGHT = 25
     ARROW_WIDTH = 20
 
-    def __init__(self, originVertex, linkVertex):
-        super().__init__(originVertex, linkVertex)
+    def __init__(self, originVertex, linkVertex, weight=None):
+        super().__init__(originVertex, linkVertex, weight)
 
         self._arrowHead = QGraphicsPolygonItem(self.getArrow(), self)
         self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
         self._arrowHead.setZValue(-1)
 
-    def getArrow(self):
+    def getArrow(self) -> QPolygonF:
         r = self._linkVertex.radius
 
         dx = self.line().dx()

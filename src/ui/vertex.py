@@ -1,6 +1,7 @@
 import math
 from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtWidgets import QGraphicsEllipseItem
+from PyQt6.QtGui import QBrush, QPen
 
 from ui.text_items import TextItems
 
@@ -33,23 +34,33 @@ class Vertex(QGraphicsEllipseItem):
         item = TextItems(str(Vertex._next_label), self)
         Vertex._next_label += 1
 
+        # Pen describes the outline of a shape.
+        self._circlePen = QPen(Qt.GlobalColor.black)
+        self._circlePen.setWidth(3)
+
+        # Brush describes the inside of a shape
+        self._circleBrush = QBrush(Qt.GlobalColor.white)
+
+        self.setPen(self._circlePen)
+        self.setBrush(self._circleBrush)
+
     @property
-    def x(self):
+    def x(self) -> float:
         return self.sceneBoundingRect().center().x()
     
     @property
-    def y(self):
+    def y(self) -> float:
         return self.sceneBoundingRect().center().y()
 
     @property
-    def diameter(self):
-        return self._diameteer
+    def diameter(self) -> int:
+        return self._diameter
 
     @property
-    def radius(self):
+    def radius(self) -> float:
         return self._diameter / 2
 
-    def getRadiusIntersect(self, other, r=None):
+    def getRadiusIntersect(self, other, r=None) -> QPointF:
         if r is None:
             r = self._diameter / 2
 
@@ -70,10 +81,10 @@ class Vertex(QGraphicsEllipseItem):
         for edge in self._edges:
             edge.updatePosition()
 
-    def isSelectable(self):
+    def isSelectable(self) -> Qt.CursorShape:
         return self.cursor() == Vertex.CUR_SELECTABLE
 
-    def isDrag(self): # TODO: maybe make more rigorous
+    def isDrag(self) -> Qt.CursorShape: # TODO: maybe make more rigorous
         return self.cursor() == Vertex.CUR_DRAG
 
     def remove(self):

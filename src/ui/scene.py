@@ -1,7 +1,6 @@
-import math
+from typing import Optional
 import networkx as nx
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QBrush, QPen
 from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsScene,
@@ -12,17 +11,8 @@ from ui.edge import Edge, DirectedEdge
 
 
 class Scene(QGraphicsScene):
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, graph: Optional[nx.Graph | nx.DiGraph]):
         super().__init__(x, y, width, height)
-
-        self._graph = nx.Graph()
-
-        # Pen describes the outline of a shape.
-        self._circlePen = QPen(Qt.GlobalColor.black)
-        self._circlePen.setWidth(3)
-
-        # Brush describes the inside of a shape
-        self._circleBrush = QBrush(Qt.GlobalColor.white)
 
         # List of vertices and edges created. Can possibly make it a set?
         self.vertexList = []
@@ -33,6 +23,42 @@ class Scene(QGraphicsScene):
         self._isEdgeMode = False
 
         self._originVertex = None
+
+        if graph is not None:
+            self._graph = graph
+            self.importGraph(graph)
+        else:
+            self._graph = nx.Graph()
+    
+    def setGraphType(self, graph_type):
+        if graph_type == "Directed":
+            self._graph = self._graph.to_directed()
+        else:
+            self._graph = self._graph.to_undirected()
+
+    def importGraph(self, graph):
+        # TODO: Find a better way to organize nodes when importing graph
+        #   Currently just lines them up in order
+        pos = (-Vertex.DIAMETER, Vertex.DIAMETER)
+        for node in graph.nodes:
+            pos = (pos[0] + 2 * Vertex.DIAMETER, pos[1])
+            if pos[0] > self.sceneRect().width():
+                pos = (Vertex.DIAMETER, pos[1] + 2 * Vertex.DIAMETER)
+            vertex = Vertex(*pos)
+            vertex.label = node
+            self.vertexList.append(vertex)
+            self.addItem(vertex)
+
+        for edge in graph.edges(graph, data=True):
+            weight = edge[2]['weight']
+            originVertex = next(vertex for vertex in self.vertexList if vertex.label == edge[0])
+            linkVertex = next(vertex for vertex in self.vertexList if vertex.label == edge[1])
+            edge = DirectedEdge(originVertex, linkVertex, weight) if isinstance(self._graph, nx.DiGraph) else Edge(originVertex, linkVertex, weight)
+            originVertex.addEdge(edge)
+            linkVertex.addEdge(edge)
+            self.edgeList.append(edge)
+            self.addItem(edge)
+            self.addItem(edge._hitBox)
 
     def toggleSelectMode(self, b):
         self._isSelectMode = b
@@ -59,25 +85,11 @@ class Scene(QGraphicsScene):
                 v.setCursor(Vertex.CUR_EDGE)
             else:
                 v.unsetCursor()
-
-    def getItemUnderMouse(self, cls, itemList):
-        underMouse = filter(cls.isUnderMouse, itemList)
-
-        try:
-            return max(underMouse, key=lambda i: i.stamp)
-        except ValueError:
-            return None
-
-    def getVertexUnderMouse(self):
-        return self.getItemUnderMouse(Vertex, self.vertexList)
-
-    def getEdgeUnderMouse(self):
-        return self.getItemUnderMouse(Edge, self.edgeList)
     
     def addEdge(self, e):
         e.accept()
 
-        nearest_vertex = self.getVertexUnderMouse()
+        nearest_vertex = self.getItemUnderMouse(Vertex, self.vertexList)
         if self._originVertex is None:
             self._originVertex = nearest_vertex
         else:
@@ -92,7 +104,9 @@ class Scene(QGraphicsScene):
                 # Reset origin vertex anyways
                 self._originVertex = None
                 return
-            edge = DirectedEdge(self._originVertex, nearest_vertex)
+            
+            edge_args = (self._originVertex, nearest_vertex)
+            edge = DirectedEdge(*edge_args) if isinstance(self._graph, nx.DiGraph) else Edge(*edge_args)
 
             self._graph.add_edge(self._originVertex.label, nearest_vertex.label, weight=edge.weight)
 
@@ -104,14 +118,6 @@ class Scene(QGraphicsScene):
             self.addItem(edge._hitBox)
             self._originVertex = None
 
-    def removeEdge(self, e):
-        e.accept()
-
-        toBeRemoved = self.getEdgeUnderMouse()
-
-        if toBeRemoved is not None:
-            toBeRemoved.remove()
-
     def addVertex(self, e):
         e.accept()
 
@@ -119,25 +125,32 @@ class Scene(QGraphicsScene):
         y = e.scenePos().y()
 
         vertex = Vertex(x, y)
-        vertex.setPen(self._circlePen)
-        vertex.setBrush(self._circleBrush)
 
         self._graph.add_node(vertex.label)
-        
         self.vertexList.append(vertex)
         self.addItem(vertex)
-
-    def removeVertex(self, e):
-        e.accept()
-
-        toBeRemoved = self.getVertexUnderMouse()
-
-        if toBeRemoved is not None:
-            toBeRemoved.remove()
 
     def verticesMoved(self):
         for v in self.vertexList:
             v.updateEdges()
+
+    def getItemUnderMouse(self, cls, itemList):
+        underMouse = filter(cls.isUnderMouse, itemList)
+
+        try:
+            return max(underMouse, key=lambda i: i.stamp)
+        except ValueError:
+            return None
+    
+    # Calling this removeItemFromScene because removeItem is reserved by PyQt
+    def removeItemFromScene(self, cls, e):
+        e.accept()
+
+        list = self.vertexList if cls == Vertex else self.edgeList
+        toBeRemoved = self.getItemUnderMouse(cls, list)
+
+        if toBeRemoved is not None:
+            toBeRemoved.remove()
 
     def mousePressEvent(self, e):
         if self._isSelectMode:
@@ -146,12 +159,12 @@ class Scene(QGraphicsScene):
             if e.button() == Qt.MouseButton.LeftButton:
                 self.addVertex(e)
             if e.button() == Qt.MouseButton.RightButton:
-                self.removeVertex(e)
+                self.removeItemFromScene(Vertex, e)
         elif self._isEdgeMode:
             if e.button() == Qt.MouseButton.LeftButton:
                 self.addEdge(e)
             if e.button() == Qt.MouseButton.RightButton:
-                self.removeEdge(e)
+                self.removeItemFromScene(Edge, e)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key.Key_P:
