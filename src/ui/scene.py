@@ -152,3 +152,7 @@ class Scene(QGraphicsScene):
                 self.addEdge(e)
             if e.button() == Qt.MouseButton.RightButton:
                 self.removeEdge(e)
+
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key.Key_P:
+            print(self._graph.adj)

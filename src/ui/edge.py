@@ -43,7 +43,8 @@ class Edge(QGraphicsLineItem):
         self.stamp = Edge._created
         Edge._created += 1
 
-        self._weight = EdgeWeightTextItem(f'{_weight:g}', self)
+        self._weightText = EdgeWeightTextItem(f'{_weight:g}', self)
+        self._weight = _weight
 
         self._originVertex = originVertex
         self._linkVertex = linkVertex
