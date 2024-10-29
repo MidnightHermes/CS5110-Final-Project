@@ -8,6 +8,8 @@ from ui.text_items import EdgeWeightTextItem
 
 _weight = 1
 def validateWeight(weight):
+    global _weight
+
     try:
         _weight = float(weight)
     except ValueError:
@@ -41,7 +43,7 @@ class Edge(QGraphicsLineItem):
         self.stamp = Edge._created
         Edge._created += 1
 
-        self._weight = EdgeWeightTextItem(str(weight), self)
+        self._weight = EdgeWeightTextItem(f'{_weight:g}', self)
 
         self._originVertex = originVertex
         self._linkVertex = linkVertex
