@@ -33,7 +33,6 @@ class Scene(QGraphicsScene):
         self._isEdgeMode = False
 
         self._originVertex = None
-        self.weight = 1
 
     def toggleSelectMode(self, b):
         self._isSelectMode = b
@@ -93,9 +92,11 @@ class Scene(QGraphicsScene):
                 # Reset origin vertex anyways
                 self._originVertex = None
                 return
-            edge = DirectedEdge(self._originVertex, nearest_vertex, self.weight)
+            
+            edge_args = (self._originVertex, nearest_vertex)
+            edge = DirectedEdge(*edge_args) #if graph_type == "Directed" else Edge(*edge_args)
 
-            self._graph.add_edge(self._originVertex.label, nearest_vertex.label, weight=self.weight)
+            self._graph.add_edge(self._originVertex.label, nearest_vertex.label, weight=edge._weight.text())
 
             self._originVertex.addEdge(edge)
             nearest_vertex.addEdge(edge)

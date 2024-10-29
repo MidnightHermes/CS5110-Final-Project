@@ -7,18 +7,21 @@ from ui.text_items import EdgeWeightTextItem
 
 
 _weight = 1
-def validateWeight(weight):
-    try:
+def validateWeight(weight: str):
+    global _weight
+    if '.' in weight:
         _weight = float(weight)
-    except ValueError:
-        _weight = 1
-        print(f"Error evaluating weight, defaulting to 1: {weight}")
+    else:
+        _weight = int(weight)
 
 
 class Edge(QGraphicsLineItem):
     _created = 0
 
-    def __init__(self, originVertex, linkVertex, weight=1):
+    def __init__(self, originVertex, linkVertex, weight=None):
+        if weight is None:
+            weight = _weight
+
         x1 = originVertex.x
         y1 = originVertex.y
         x2 = linkVertex.x
@@ -93,7 +96,7 @@ class DirectedEdge(Edge):
     ARROW_HEIGHT = 25
     ARROW_WIDTH = 20
 
-    def __init__(self, originVertex, linkVertex, weight=1):
+    def __init__(self, originVertex, linkVertex, weight=None):
         super().__init__(originVertex, linkVertex, weight)
 
         self._arrowHead = QGraphicsPolygonItem(self.getArrow(), self)
