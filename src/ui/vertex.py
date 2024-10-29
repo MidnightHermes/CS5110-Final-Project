@@ -1,6 +1,7 @@
 import math
 from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtWidgets import QGraphicsEllipseItem
+from PyQt6.QtGui import QBrush, QPen
 
 from ui.text_items import TextItems
 
@@ -32,6 +33,16 @@ class Vertex(QGraphicsEllipseItem):
         self.label = Vertex._next_label
         item = TextItems(str(Vertex._next_label), self)
         Vertex._next_label += 1
+
+        # Pen describes the outline of a shape.
+        self._circlePen = QPen(Qt.GlobalColor.black)
+        self._circlePen.setWidth(3)
+
+        # Brush describes the inside of a shape
+        self._circleBrush = QBrush(Qt.GlobalColor.white)
+
+        self.setPen(self._circlePen)
+        self.setBrush(self._circleBrush)
 
     @property
     def x(self):

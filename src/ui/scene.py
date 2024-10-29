@@ -1,6 +1,5 @@
 import networkx as nx
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QBrush, QPen
 from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsScene,
@@ -15,13 +14,6 @@ class Scene(QGraphicsScene):
         super().__init__(x, y, width, height)
 
         self._graph = nx.Graph()
-
-        # Pen describes the outline of a shape.
-        self._circlePen = QPen(Qt.GlobalColor.black)
-        self._circlePen.setWidth(3)
-
-        # Brush describes the inside of a shape
-        self._circleBrush = QBrush(Qt.GlobalColor.white)
 
         # List of vertices and edges created. Can possibly make it a set?
         self.vertexList = []
@@ -126,8 +118,6 @@ class Scene(QGraphicsScene):
         y = e.scenePos().y()
 
         vertex = Vertex(x, y)
-        vertex.setPen(self._circlePen)
-        vertex.setBrush(self._circleBrush)
 
         self._graph.add_node(vertex.label)
         
