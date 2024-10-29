@@ -1,3 +1,4 @@
+from typing import Optional
 import networkx as nx
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
@@ -10,10 +11,8 @@ from ui.edge import Edge, DirectedEdge
 
 
 class Scene(QGraphicsScene):
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, graph: Optional[nx.Graph | nx.DiGraph]):
         super().__init__(x, y, width, height)
-
-        self._graph = nx.Graph()
 
         # List of vertices and edges created. Can possibly make it a set?
         self.vertexList = []
@@ -24,12 +23,42 @@ class Scene(QGraphicsScene):
         self._isEdgeMode = False
 
         self._originVertex = None
+
+        if graph is not None:
+            self._graph = graph
+            self.importGraph(graph)
+        else:
+            self._graph = nx.Graph()
     
     def setGraphType(self, graph_type):
         if graph_type == "Directed":
             self._graph = self._graph.to_directed()
         else:
             self._graph = self._graph.to_undirected()
+
+    def importGraph(self, graph):
+        # TODO: Find a better way to organize nodes when importing graph
+        #   Currently just lines them up in order
+        pos = (-Vertex.DIAMETER, Vertex.DIAMETER)
+        for node in graph.nodes:
+            pos = (pos[0] + 2 * Vertex.DIAMETER, pos[1])
+            if pos[0] > self.sceneRect().width():
+                pos = (Vertex.DIAMETER, pos[1] + 2 * Vertex.DIAMETER)
+            vertex = Vertex(*pos)
+            vertex.label = node
+            self.vertexList.append(vertex)
+            self.addItem(vertex)
+
+        for edge in graph.edges(graph, data=True):
+            weight = edge[2]['weight']
+            originVertex = next(vertex for vertex in self.vertexList if vertex.label == edge[0])
+            linkVertex = next(vertex for vertex in self.vertexList if vertex.label == edge[1])
+            edge = DirectedEdge(originVertex, linkVertex, weight) if isinstance(self._graph, nx.DiGraph) else Edge(originVertex, linkVertex, weight)
+            originVertex.addEdge(edge)
+            linkVertex.addEdge(edge)
+            self.edgeList.append(edge)
+            self.addItem(edge)
+            self.addItem(edge._hitBox)
 
     def toggleSelectMode(self, b):
         self._isSelectMode = b

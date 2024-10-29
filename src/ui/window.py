@@ -1,3 +1,5 @@
+from typing import Optional
+import networkx as nx
 from PyQt6.QtGui import QPainter, QDoubleValidator
 from PyQt6.QtWidgets import (
     QButtonGroup,
@@ -19,15 +21,20 @@ MIN_WEIGHT_INPUT = -1000
 
 
 class Window(QWidget):
-    def __init__(self):
+    def __init__(self, graph: Optional[nx.Graph | nx.DiGraph]=None):
         super().__init__()
 
-        self.scene = Scene(0, 0, 800, 400)
+        self.scene = Scene(0, 0, 800, 400, graph)
 
         vbox = QVBoxLayout()
 
         self.initGraphTypeButtons(vbox)
         self.initStateButtons(vbox)
+
+        if graph is not None:
+            self.directed_mode.setChecked(isinstance(graph, nx.DiGraph))
+            self.undirected_mode.setChecked(not isinstance(graph, nx.DiGraph))
+            self.confirmGraphType()
 
         view = QGraphicsView(self.scene)
         view.setRenderHint(QPainter.RenderHint.Antialiasing)
