@@ -1,4 +1,3 @@
-import math
 import networkx as nx
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QPen
@@ -33,6 +32,12 @@ class Scene(QGraphicsScene):
         self._isEdgeMode = False
 
         self._originVertex = None
+    
+    def setGraphType(self, graph_type):
+        if graph_type == "Directed":
+            self._graph = self._graph.to_directed()
+        else:
+            self._graph = self._graph.to_undirected()
 
     def toggleSelectMode(self, b):
         self._isSelectMode = b
@@ -94,7 +99,7 @@ class Scene(QGraphicsScene):
                 return
             
             edge_args = (self._originVertex, nearest_vertex)
-            edge = DirectedEdge(*edge_args) #if graph_type == "Directed" else Edge(*edge_args)
+            edge = DirectedEdge(*edge_args) if self._graph is nx.DiGraph else Edge(*edge_args)
 
             self._graph.add_edge(self._originVertex.label, nearest_vertex.label, weight=edge._weight.text())
 

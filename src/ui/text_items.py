@@ -2,6 +2,7 @@ import math
 from PyQt6.QtCore import QPointF
 from PyQt6.QtWidgets import QGraphicsSimpleTextItem
 
+
 class TextItems(QGraphicsSimpleTextItem):
     def __init__(self, text, parent, pos=None):
         super().__init__(text, parent)

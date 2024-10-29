@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QLineEdit,
+    QPushButton,
 )
 
 from ui.scene import Scene
@@ -25,6 +26,7 @@ class Window(QWidget):
 
         vbox = QVBoxLayout()
 
+        self.initGraphTypeButtons(vbox)
         self.initStateButtons(vbox)
 
         view = QGraphicsView(self.scene)
@@ -35,21 +37,57 @@ class Window(QWidget):
         hbox.addWidget(view)
 
         self.setLayout(hbox)
+    
+    def initGraphTypeButtons(self, vbox):
+        vbox_top = QVBoxLayout()
+
+        self.directed_mode = QRadioButton("Directed")
+        self.undirected_mode = QRadioButton("Undirected")
+        self.confirm_button = QPushButton("Confirm")
+
+        vbox_top.addWidget(self.directed_mode)
+        vbox_top.addWidget(self.undirected_mode)
+        vbox_top.addWidget(self.confirm_button)
+
+        self.graph_type_group = QButtonGroup()
+        self.graph_type_group.addButton(self.directed_mode)
+        self.graph_type_group.addButton(self.undirected_mode)
+        self.graph_type_group.addButton(self.confirm_button)
+
+        self.directed_mode.setChecked(True)  # Default to directed mode
+
+        self.confirm_button.clicked.connect(self.confirmGraphType)
+
+        vbox.addLayout(vbox_top)
+    
+    def confirmGraphType(self):
+        self.scene.setGraphType("Directed" if self.directed_mode.isChecked() else "Undirected")
+        # Grey out the option to select graph type
+        self.directed_mode.setEnabled(False)
+        self.undirected_mode.setEnabled(False)
+        self.confirm_button.setEnabled(False)
+        # Make the other buttons selectable
+        self.select_mode.setEnabled(True)
+        self.vertex_mode.setEnabled(True)
+        self.edge_mode.setEnabled(True)
 
     def initStateButtons(self, vbox):
-        select_mode = QRadioButton("Select")
-        select_mode.toggled.connect(self.scene.toggleSelectMode)
-        vbox.addWidget(select_mode)
+        self.select_mode = QRadioButton("Select")
+        self.select_mode.toggled.connect(self.scene.toggleSelectMode)
+        self.select_mode.click()  # select mode is selected on startup
+        self.select_mode.setEnabled(False)
+        vbox.addWidget(self.select_mode)
 
-        select_mode.click()  # select mode is selected on startup
 
-        vertex_mode = QRadioButton("Vertices")
-        vertex_mode.toggled.connect(self.scene.toggleVertexMode)
-        vbox.addWidget(vertex_mode)
+        self.vertex_mode = QRadioButton("Vertices")
+        self.vertex_mode.toggled.connect(self.scene.toggleVertexMode)
+        self.vertex_mode.setEnabled(False)
+        vbox.addWidget(self.vertex_mode)
 
-        edge_mode = QRadioButton("Edges")
-        edge_mode.toggled.connect(self.scene.toggleEdgeMode)
-        vbox.addWidget(edge_mode)
+        self.edge_mode = QRadioButton("Edges")
+        self.edge_mode.toggled.connect(self.scene.toggleEdgeMode)
+        self.edge_mode.setEnabled(False)
+        vbox.addWidget(self.edge_mode)
 
         weight_input = QLineEdit("")
         weight_input.setPlaceholderText("Enter weight")
@@ -62,12 +100,11 @@ class Window(QWidget):
         # Use the editingFinished event which is only emitted when the validator emits an Acceptable signal
         weight_input.editingFinished.connect(lambda: validateWeight(weight_input.text()))
         vbox.addWidget(weight_input)
-
         # Grey out weight input when edge mode is not selected
-        toggle_weight_input = lambda: weight_input.setEnabled(edge_mode.isChecked())
-        edge_mode.toggled.connect(toggle_weight_input)
+        toggle_weight_input = lambda: weight_input.setEnabled(self.edge_mode.isChecked())
+        self.edge_mode.toggled.connect(toggle_weight_input)
 
-        mode_group = QButtonGroup()
-        mode_group.addButton(select_mode)
-        mode_group.addButton(vertex_mode)
-        mode_group.addButton(edge_mode)
+        self.mode_group = QButtonGroup()
+        self.mode_group.addButton(self.select_mode)
+        self.mode_group.addButton(self.vertex_mode)
+        self.mode_group.addButton(self.edge_mode)
