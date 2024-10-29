@@ -20,7 +20,7 @@ def validateWeight(weight):
 class Edge(QGraphicsLineItem):
     _created = 0
 
-    def __init__(self, originVertex, linkVertex, weight=1):
+    def __init__(self, originVertex, linkVertex):
         x1 = originVertex.x
         y1 = originVertex.y
         x2 = linkVertex.x
@@ -47,6 +47,10 @@ class Edge(QGraphicsLineItem):
 
         self._originVertex = originVertex
         self._linkVertex = linkVertex
+
+    @property
+    def weight(self):
+        return self._weight
 
     def createHitBox(self, x1, y1, x2, y2):
         hitBox = QGraphicsLineItem(x1, y1, x2, y2)
@@ -95,8 +99,8 @@ class DirectedEdge(Edge):
     ARROW_HEIGHT = 25
     ARROW_WIDTH = 20
 
-    def __init__(self, originVertex, linkVertex, weight=1):
-        super().__init__(originVertex, linkVertex, weight)
+    def __init__(self, originVertex, linkVertex):
+        super().__init__(originVertex, linkVertex)
 
         self._arrowHead = QGraphicsPolygonItem(self.getArrow(), self)
         self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
