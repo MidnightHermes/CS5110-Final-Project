@@ -45,22 +45,22 @@ class Vertex(QGraphicsEllipseItem):
         self.setBrush(self._circleBrush)
 
     @property
-    def x(self):
+    def x(self) -> float:
         return self.sceneBoundingRect().center().x()
     
     @property
-    def y(self):
+    def y(self) -> float:
         return self.sceneBoundingRect().center().y()
 
     @property
-    def diameter(self):
+    def diameter(self) -> int:
         return self._diameter
 
     @property
-    def radius(self):
+    def radius(self) -> float:
         return self._diameter / 2
 
-    def getRadiusIntersect(self, other, r=None):
+    def getRadiusIntersect(self, other, r=None) -> QPointF:
         if r is None:
             r = self._diameter / 2
 
@@ -81,10 +81,10 @@ class Vertex(QGraphicsEllipseItem):
         for edge in self._edges:
             edge.updatePosition()
 
-    def isSelectable(self):
+    def isSelectable(self) -> Qt.CursorShape:
         return self.cursor() == Vertex.CUR_SELECTABLE
 
-    def isDrag(self): # TODO: maybe make more rigorous
+    def isDrag(self) -> Qt.CursorShape: # TODO: maybe make more rigorous
         return self.cursor() == Vertex.CUR_DRAG
 
     def remove(self):

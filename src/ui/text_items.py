@@ -12,7 +12,7 @@ class TextItems(QGraphicsSimpleTextItem):
         self.setPos(self.determinePosition())
         self.setParentItem(self._parent)
 
-    def determinePosition(self):
+    def determinePosition(self) -> QPointF:
         # By default, pos would be the top-left corner
         # of the textbox, so it needs to be corrected.
 
@@ -30,7 +30,7 @@ class EdgeWeightTextItem(TextItems):
 
         super().__init__(text, parent, self.determinePosition())
     
-    def determinePosition(self):
+    def determinePosition(self) -> QPointF:
         dx = self._parent.line().dx()
         dy = self._parent.line().dy()
         theta = math.atan2(dy, dx)

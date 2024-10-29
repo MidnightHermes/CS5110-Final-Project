@@ -49,7 +49,7 @@ class Edge(QGraphicsLineItem):
         self._originVertex = originVertex
         self._linkVertex = linkVertex
 
-    def createHitBox(self, x1, y1, x2, y2):
+    def createHitBox(self, x1, y1, x2, y2) -> QGraphicsLineItem:
         hitBox = QGraphicsLineItem(x1, y1, x2, y2)
         hitBox.setZValue(-1)
 
@@ -59,7 +59,7 @@ class Edge(QGraphicsLineItem):
 
         return hitBox
 
-    def isUnderMouse(self):
+    def isUnderMouse(self) -> bool:
         return self._hitBox.isUnderMouse()
 
     def updatePosition(self):
@@ -91,7 +91,6 @@ class Edge(QGraphicsLineItem):
             self._linkVertex._edges.remove(self)
         
 
-
 class DirectedEdge(Edge):
     ARROW_HEIGHT = 25
     ARROW_WIDTH = 20
@@ -103,7 +102,7 @@ class DirectedEdge(Edge):
         self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
         self._arrowHead.setZValue(-1)
 
-    def getArrow(self):
+    def getArrow(self) -> QPolygonF:
         r = self._linkVertex.radius
 
         dx = self.line().dx()
