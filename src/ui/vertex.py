@@ -54,7 +54,7 @@ class Vertex(QGraphicsEllipseItem):
 
     @property
     def diameter(self):
-        return self._diameteer
+        return self._diameter
 
     @property
     def radius(self):

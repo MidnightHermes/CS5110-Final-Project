@@ -56,25 +56,11 @@ class Scene(QGraphicsScene):
                 v.setCursor(Vertex.CUR_EDGE)
             else:
                 v.unsetCursor()
-
-    def getItemUnderMouse(self, cls, itemList):
-        underMouse = filter(cls.isUnderMouse, itemList)
-
-        try:
-            return max(underMouse, key=lambda i: i.stamp)
-        except ValueError:
-            return None
-
-    def getVertexUnderMouse(self):
-        return self.getItemUnderMouse(Vertex, self.vertexList)
-
-    def getEdgeUnderMouse(self):
-        return self.getItemUnderMouse(Edge, self.edgeList)
     
     def addEdge(self, e):
         e.accept()
 
-        nearest_vertex = self.getVertexUnderMouse()
+        nearest_vertex = self.getItemUnderMouse(Vertex, self.vertexList)
         if self._originVertex is None:
             self._originVertex = nearest_vertex
         else:
@@ -103,14 +89,6 @@ class Scene(QGraphicsScene):
             self.addItem(edge._hitBox)
             self._originVertex = None
 
-    def removeEdge(self, e):
-        e.accept()
-
-        toBeRemoved = self.getEdgeUnderMouse()
-
-        if toBeRemoved is not None:
-            toBeRemoved.remove()
-
     def addVertex(self, e):
         e.accept()
 
@@ -120,21 +98,30 @@ class Scene(QGraphicsScene):
         vertex = Vertex(x, y)
 
         self._graph.add_node(vertex.label)
-        
         self.vertexList.append(vertex)
         self.addItem(vertex)
-
-    def removeVertex(self, e):
-        e.accept()
-
-        toBeRemoved = self.getVertexUnderMouse()
-
-        if toBeRemoved is not None:
-            toBeRemoved.remove()
 
     def verticesMoved(self):
         for v in self.vertexList:
             v.updateEdges()
+
+    def getItemUnderMouse(self, cls, itemList):
+        underMouse = filter(cls.isUnderMouse, itemList)
+
+        try:
+            return max(underMouse, key=lambda i: i.stamp)
+        except ValueError:
+            return None
+    
+    # Calling this removeItemFromScene because removeItem is reserved by PyQt
+    def removeItemFromScene(self, cls, e):
+        e.accept()
+
+        list = self.vertexList if cls == Vertex else self.edgeList
+        toBeRemoved = self.getItemUnderMouse(cls, list)
+
+        if toBeRemoved is not None:
+            toBeRemoved.remove()
 
     def mousePressEvent(self, e):
         if self._isSelectMode:
@@ -143,9 +130,9 @@ class Scene(QGraphicsScene):
             if e.button() == Qt.MouseButton.LeftButton:
                 self.addVertex(e)
             if e.button() == Qt.MouseButton.RightButton:
-                self.removeVertex(e)
+                self.removeItemFromScene(Vertex, e)
         elif self._isEdgeMode:
             if e.button() == Qt.MouseButton.LeftButton:
                 self.addEdge(e)
             if e.button() == Qt.MouseButton.RightButton:
-                self.removeEdge(e)
+                self.removeItemFromScene(Edge, e)
