@@ -99,7 +99,7 @@ class Scene(QGraphicsScene):
                 return
             
             edge_args = (self._originVertex, nearest_vertex)
-            edge = DirectedEdge(*edge_args) if self._graph is nx.DiGraph else Edge(*edge_args)
+            edge = DirectedEdge(*edge_args) if isinstance(self._graph, nx.DiGraph) else Edge(*edge_args)
 
             self._graph.add_edge(self._originVertex.label, nearest_vertex.label, weight=edge._weight.text())
 
