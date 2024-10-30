@@ -74,7 +74,7 @@ class Edge(QGraphicsLineItem):
         newY2 = self._linkVertex.y
         self.setLine(newX1, newY1, newX2, newY2)
         self._hitBox.setLine(newX1, newY1, newX2, newY2)
-        self._weight.setPos(self._weight.determinePosition())
+        self._weightText.setPos(self._weightText.determinePosition())
 
     def remove(self, call_backend=True, caller=None):
         scene = self.scene()
