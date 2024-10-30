@@ -4,6 +4,11 @@ import heapq
 
 
 def prims(graph: nx.Graph | nx.DiGraph) -> nx.Graph | nx.DiGraph:
+    """
+    Implementation of Prim's algorithm for finding the minimum spanning tree of a graph
+    :param graph: The input networkx Graph or DiGraph object
+    :return: The minimum spanning tree of the input graph
+    """
     start = list(graph.nodes)[random.randint(0, len(graph.nodes) - 1)]  # Randomly select a starting node from the graph
     mst = type(graph)()  # Create a new graph of the same type as the input graph
     mst.add_node(start)  # Initialize the MST with the start node
