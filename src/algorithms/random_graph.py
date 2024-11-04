@@ -10,7 +10,7 @@ class RandomGraph:
     def __init__(self, directed=False, seed=DEFAULT_SEED):
         self.graph = self.gen_random_complete_connected_weighted_graph(directed=directed, seed=seed)
 
-    def gen_random_complete_connected_weighted_graph(self, directed: bool, seed: int) -> nx.Graph | nx.DiGraph:
+    def gen_random_complete_connected_weighted_graph(self, directed: bool, seed: int):
         # We assume a graph with less than 3 nodes is trivial so we ensure the seed is at least 3
         if seed < 3:
             seed = 3
@@ -26,5 +26,5 @@ class RandomGraph:
 
         G = nx.gnm_random_graph(num_nodes, num_edges, directed=directed)
         for edge in G.edges():
-            G.edges[*edge]['weight'] = random.randint(1, seed)  # Assign random weights between 1 and 10
+            G.edges[edge]['weight'] = random.randint(1, seed)  # Assign random weights between 1 and 10
         return G
