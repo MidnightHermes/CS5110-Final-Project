@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 import networkx as nx
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
@@ -7,11 +7,11 @@ from PyQt6.QtWidgets import (
 )
 
 from ui.vertex import Vertex
-from ui.edge import Edge, DirectedEdge
+from ui.edge import Edge
 
 
 class Scene(QGraphicsScene):
-    def __init__(self, x, y, width, height, graph: Optional[nx.Graph | nx.DiGraph]):
+    def __init__(self, x, y, width, height, graph: Optional[Union[nx.Graph, nx.DiGraph]]):
         super().__init__(x, y, width, height)
 
         # List of vertices and edges created. Can possibly make it a set?
@@ -21,6 +21,8 @@ class Scene(QGraphicsScene):
         self._isSelectMode = False
         self._isVertexMode = False
         self._isEdgeMode = False
+        self._isWeighted = True
+        self._isDirected = True
 
         self._originVertex = None
 
@@ -28,13 +30,21 @@ class Scene(QGraphicsScene):
             self._graph = graph
             self.importGraph(graph)
         else:
-            self._graph = nx.Graph()
+            self._graph = nx.DiGraph()
     
-    def setGraphType(self, graph_type):
-        if graph_type == "Directed":
+    def setGraphType(self, graph_type: bool):
+        self._isDirected = graph_type
+        if graph_type:
             self._graph = self._graph.to_directed()
         else:
             self._graph = self._graph.to_undirected()
+        for edge in self.edgeList:
+            edge._arrowHead.setOpacity(1.0) if isinstance(self._graph, nx.DiGraph) else edge._arrowHead.setOpacity(0.0)
+
+    def setWeighted(self, weighted: bool):
+        self._isWeighted = weighted
+        for edge in self.edgeList:
+            edge._weightText.setVisible(weighted)
 
     def importGraph(self, graph):
         # TODO: Find a better way to organize nodes when importing graph
@@ -53,7 +63,7 @@ class Scene(QGraphicsScene):
             weight = edge[2]['weight']
             originVertex = next(vertex for vertex in self.vertexList if vertex.label == edge[0])
             linkVertex = next(vertex for vertex in self.vertexList if vertex.label == edge[1])
-            edge = DirectedEdge(originVertex, linkVertex, weight) if isinstance(self._graph, nx.DiGraph) else Edge(originVertex, linkVertex, weight)
+            edge = Edge(originVertex, linkVertex, self._isDirected, weight)
             originVertex.addEdge(edge)
             linkVertex.addEdge(edge)
             self.edgeList.append(edge)
@@ -98,15 +108,15 @@ class Scene(QGraphicsScene):
                 # or if user tries to connect a vertex to itself
                 nearest_vertex == self._originVertex or
                 # or if user tries to connect originVertex to a vertex it is already connected to
-                any(edge._linkVertex == nearest_vertex for edge in self._originVertex._edges) or
-                # or if user tries to connect a vertex to the originVertex that is already connected to it
-                any(edge._linkVertex == self._originVertex for edge in nearest_vertex._edges)):
+                any(edge._linkVertex == nearest_vertex for edge in self._originVertex._edges)):
                 # Reset origin vertex anyways
                 self._originVertex = None
                 return
+
+            offset_weight = any(edge._linkVertex == self._originVertex for edge in nearest_vertex._edges)
             
             edge_args = (self._originVertex, nearest_vertex)
-            edge = DirectedEdge(*edge_args) if isinstance(self._graph, nx.DiGraph) else Edge(*edge_args)
+            edge = Edge(*edge_args, directed=self._isWeighted, doOffset=offset_weight)
 
             self._graph.add_edge(self._originVertex.label, nearest_vertex.label, weight=edge.weight)
 

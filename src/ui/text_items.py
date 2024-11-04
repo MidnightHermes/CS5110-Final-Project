@@ -24,7 +24,9 @@ class TextItems(QGraphicsSimpleTextItem):
         return self._pos - QPointF(rWidth / 2, rHeight / 2)
 
 class EdgeWeightTextItem(TextItems):
-    def __init__(self, text, parent, pos=None):
+    def __init__(self, text, parent, doOffset: bool, pos=None):
+        self._offsetWeight = doOffset
+
         self._parent = parent
         self._pos = pos
 
@@ -37,5 +39,9 @@ class EdgeWeightTextItem(TextItems):
         normal = theta + math.pi / 2
         offset = 10 * QPointF(math.cos(normal), math.sin(normal))
         basePoint = self._parent.line().center()
+
+        if self._offsetWeight:
+            # TODO: Make offset calculation more robust for reflexive edges
+            offset = -offset
 
         return basePoint + offset if theta < 0.33 * math.pi and theta > -0.67 * math.pi else basePoint - offset
