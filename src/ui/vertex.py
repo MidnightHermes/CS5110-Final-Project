@@ -113,7 +113,7 @@ class Vertex(QGraphicsEllipseItem):
     def mouseMoveEvent(self, e):
         super().mouseMoveEvent(e)
 
-        self.scene().verticesMoved()
+        self.scene()._graphScene.verticesMoved()
 
     def mouseReleaseEvent(self, e):
         if (self.isDrag() and  # If currently dragging in select mode
