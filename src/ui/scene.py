@@ -15,13 +15,18 @@ class Scene(QGraphicsScene):
     def __init__(self, x, y, width, height, graph: Optional[nx.Graph | nx.DiGraph]):
         super().__init__(x, y, width, height)
 
-        self._graphScene = GraphScene(self, graph)
+        self._isSelectMode = False
+        self._isVertexMode = False
+        self._isEdgeMode = False
+
+        self._graphScene = GraphScene(graph)
+        self.addItem(self._graphScene)
 
     def toggleSelectMode(self, b):
         self._isSelectMode = b
 
         # If select mode is enabled, make vertices selectable and movable.
-        for v in self.vertexList:
+        for v in self._graphScene.vertices:
             v.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, b)
             v.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, b)
             
@@ -37,7 +42,7 @@ class Scene(QGraphicsScene):
         self._isEdgeMode = b
         # TODO: make vertices bubble out a little when hovered over
 
-        for v in self.vertexList:
+        for v in self._graphScene.vertices:
             if b:
                 v.setCursor(Vertex.CUR_EDGE)
             else:
@@ -55,7 +60,7 @@ class Scene(QGraphicsScene):
     def removeItemFromScene(self, cls, e):
         e.accept()
 
-        list = self.vertexList if cls == Vertex else self.edgeList
+        list = self._graphScene.vertices if cls == Vertex else self._graphScene.edges
         toBeRemoved = self.getItemUnderMouse(cls, list)
 
         if toBeRemoved is not None:
