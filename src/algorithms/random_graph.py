@@ -1,9 +1,62 @@
+import itertools
 import networkx as nx
 import random
 
 
 DEFAULT_SEED = 10
 
+def _edge_gen(n, directed):
+    f = itertools.permutations if directed else itertools.combinations
+
+    return f(range(n), 2)
+
+def _adjust_probability(p, n, m, directed):
+    m_total = n * (n - 1)
+    if directed:
+        m_total /= 2
+
+    if m == m_total:
+        return 1.0
+
+    assert(m < m_total)
+
+    m_expected = m_total * p
+    
+    edges_left = m_total - m
+
+    return (m_expected - m) / edges_left
+
+
+def _finish_random_graph(g, p):
+    already_existing_edges = g.edges
+
+    n = g.number_of_nodes()
+    m = len(already_existing_edges)
+
+    directed = isinstance(g, nx.DiGraph)
+
+    p = _adjust_probability(p, n, m, directed)
+    
+    edges_left = (e for e in _edge_gen(n, directed) if e not in already_existing_edges)
+    for e in edges_left:
+        if random.random() < p:
+            g.add_edge(*e)
+
+    return g
+
+def complete_graph(n, directed):
+    g = nx.DiGraph() if directed else nx.Graph()
+
+    for e in _edge_gen(n, directed):
+        g.add_edge(*e)
+
+    return g
+
+def with_clique(n, clique_size, p):
+    g = complete_graph(clique_size, False)
+
+    g.add_nodes_from(range(clique_size, n))
+    return _finish_random_graph(g, p)
 
 class RandomGraph:
     # TODO: Create different graph generation methods and pass type of graph as parameter
