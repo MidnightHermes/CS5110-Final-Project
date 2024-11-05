@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 import networkx as nx
 from PyQt6.QtGui import QPainter, QDoubleValidator
 from PyQt6.QtWidgets import (
@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QLineEdit,
-    QPushButton,
+    QCheckBox,
 )
 
 from ui.scene import Scene
@@ -21,7 +21,8 @@ MIN_WEIGHT_INPUT = -1000
 
 
 class Window(QWidget):
-    def __init__(self, graph: Optional[nx.Graph | nx.DiGraph]=None):
+    def __init__(self, graph: Optional[Union[nx.Graph, nx.DiGraph]]=None):
+
         super().__init__()
 
         self.scene = Scene(0, 0, 800, 400, graph)
@@ -32,9 +33,7 @@ class Window(QWidget):
         self.initStateButtons(vbox)
 
         if graph is not None:
-            self.directed_mode.setChecked(isinstance(graph, nx.DiGraph))
-            self.undirected_mode.setChecked(not isinstance(graph, nx.DiGraph))
-            self.confirmGraphType()
+            self.directed_toggle.setChecked(isinstance(graph, nx.DiGraph))
 
         view = QGraphicsView(self.scene)
         view.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -48,54 +47,34 @@ class Window(QWidget):
     def initGraphTypeButtons(self, vbox):
         vbox_top = QVBoxLayout()
 
-        self.directed_mode = QRadioButton("Directed")
-        self.undirected_mode = QRadioButton("Undirected")
-        self.confirm_button = QPushButton("Confirm")
+        self.directed_toggle = QCheckBox("Directed")
 
-        vbox_top.addWidget(self.directed_mode)
-        vbox_top.addWidget(self.undirected_mode)
-        vbox_top.addWidget(self.confirm_button)
+        vbox_top.addWidget(self.directed_toggle)
 
-        self.graph_type_group = QButtonGroup()
-        self.graph_type_group.addButton(self.directed_mode)
-        self.graph_type_group.addButton(self.undirected_mode)
-        self.graph_type_group.addButton(self.confirm_button)
+        self.directed_toggle.setChecked(True)  # Default to undirected mode
 
-        self.directed_mode.setChecked(True)  # Default to directed mode
-
-        self.confirm_button.clicked.connect(self.confirmGraphType)
+        self.directed_toggle.clicked.connect(self.confirmGraphType)
 
         vbox.addLayout(vbox_top)
     
     def confirmGraphType(self):
-        self.scene.setGraphType("Directed" if self.directed_mode.isChecked() else "Undirected")
-        # Grey out the option to select graph type
-        self.directed_mode.setEnabled(False)
-        self.undirected_mode.setEnabled(False)
-        self.confirm_button.setEnabled(False)
-        # Make the other buttons selectable
-        self.select_mode.setEnabled(True)
-        self.vertex_mode.setEnabled(True)
-        self.edge_mode.setEnabled(True)
+        self.scene.setGraphType(self.directed_toggle.isChecked())
 
     def initStateButtons(self, vbox):
         self.select_mode = QRadioButton("Select")
         self.select_mode.toggled.connect(self.scene.toggleSelectMode)
         self.select_mode.click()  # select mode is selected on startup
-        self.select_mode.setEnabled(False)
         vbox.addWidget(self.select_mode)
-
 
         self.vertex_mode = QRadioButton("Vertices")
         self.vertex_mode.toggled.connect(self.scene.toggleVertexMode)
-        self.vertex_mode.setEnabled(False)
         vbox.addWidget(self.vertex_mode)
 
         self.edge_mode = QRadioButton("Edges")
         self.edge_mode.toggled.connect(self.scene.toggleEdgeMode)
-        self.edge_mode.setEnabled(False)
         vbox.addWidget(self.edge_mode)
 
+        weight_hbox = QHBoxLayout()
         weight_input = QLineEdit("")
         weight_input.setPlaceholderText("Enter weight")
         weight_input.setEnabled(False)
@@ -106,9 +85,16 @@ class Window(QWidget):
         weight_input.setValidator(weight_input_validator)
         # Use the editingFinished event which is only emitted when the validator emits an Acceptable signal
         weight_input.editingFinished.connect(lambda: validateWeight(weight_input.text()))
-        vbox.addWidget(weight_input)
+        weight_checkbox = QCheckBox("Weighted")
+        weight_checkbox.setChecked(True)
+        weight_checkbox.clicked.connect(self.scene.setWeighted)
+        # Add the widgets to the hbox which is then added to the vbox
+        weight_hbox.addWidget(weight_checkbox)
+        weight_hbox.addWidget(weight_input)
+        vbox.addLayout(weight_hbox)
         # Grey out weight input when edge mode is not selected
-        toggle_weight_input = lambda: weight_input.setEnabled(self.edge_mode.isChecked())
+        toggle_weight_input = lambda: weight_input.setEnabled(self.edge_mode.isChecked() and weight_checkbox.isChecked())
+        weight_checkbox.clicked.connect(toggle_weight_input)
         self.edge_mode.toggled.connect(toggle_weight_input)
 
         self.mode_group = QButtonGroup()

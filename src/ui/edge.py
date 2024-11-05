@@ -16,9 +16,12 @@ def validateWeight(weight: str):
         pass
 
 class Edge(QGraphicsLineItem):
+    ARROW_HEIGHT = 25
+    ARROW_WIDTH = 20
+
     _created = 0
 
-    def __init__(self, originVertex, linkVertex, weight=None):
+    def __init__(self, originVertex, linkVertex, directed=True, weight=None, doOffset=False):
         if weight is None:
             weight = _weight
 
@@ -44,11 +47,16 @@ class Edge(QGraphicsLineItem):
         self.stamp = Edge._created
         Edge._created += 1
 
-        self._weightText = EdgeWeightTextItem(f'{_weight:g}', self)
+        self._weightText = EdgeWeightTextItem(f'{_weight:g}', self, doOffset)
         self._weight = _weight
 
         self._originVertex = originVertex
         self._linkVertex = linkVertex
+
+        # Handle arrowHead
+        self._arrowHead = QGraphicsPolygonItem(self.getArrow(), self)
+        self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
+        self._arrowHead.setZValue(-1)
 
     @property
     def weight(self):
@@ -66,46 +74,6 @@ class Edge(QGraphicsLineItem):
 
     def isUnderMouse(self) -> bool:
         return self._hitBox.isUnderMouse()
-
-    def updatePosition(self):
-        newX1 = self._originVertex.x
-        newY1 = self._originVertex.y
-        newX2 = self._linkVertex.x
-        newY2 = self._linkVertex.y
-        self.setLine(newX1, newY1, newX2, newY2)
-        self._hitBox.setLine(newX1, newY1, newX2, newY2)
-        self._weightText.setPos(self._weightText.determinePosition())
-
-    def remove(self, call_backend=True, caller=None):
-        scene = self.scene()
-
-        if call_backend:
-            fromLabel = self._originVertex.label
-            toLabel = self._linkVertex.label
-            scene._graph.remove_edge(fromLabel, toLabel)
-
-        scene.edgeList.remove(self)
-
-        scene.removeItem(self)
-       
-        # need caller so we don't mutate a list that
-        # is being iterated through in Vertex.remove()
-        if caller is not self._originVertex:
-            self._originVertex._edges.remove(self)
-        if caller is not self._linkVertex:
-            self._linkVertex._edges.remove(self)
-        
-
-class DirectedEdge(Edge):
-    ARROW_HEIGHT = 25
-    ARROW_WIDTH = 20
-
-    def __init__(self, originVertex, linkVertex, weight=None):
-        super().__init__(originVertex, linkVertex, weight)
-
-        self._arrowHead = QGraphicsPolygonItem(self.getArrow(), self)
-        self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
-        self._arrowHead.setZValue(-1)
 
     def getArrow(self) -> QPolygonF:
         r = self._linkVertex.radius
@@ -141,6 +109,32 @@ class DirectedEdge(Edge):
         return QPolygonF([tip, leftWing, rightWing])
 
     def updatePosition(self):
-        super().updatePosition()
+        newX1 = self._originVertex.x
+        newY1 = self._originVertex.y
+        newX2 = self._linkVertex.x
+        newY2 = self._linkVertex.y
+        self.setLine(newX1, newY1, newX2, newY2)
+        self._hitBox.setLine(newX1, newY1, newX2, newY2)
+        self._weightText.setPos(self._weightText.determinePosition())
+
+        # Handle arrowHead
         self._arrowHead.setPolygon(self.getArrow())
 
+    def remove(self, call_backend=True, caller=None):
+        scene = self.scene()
+
+        if call_backend:
+            fromLabel = self._originVertex.label
+            toLabel = self._linkVertex.label
+            scene._graph.remove_edge(fromLabel, toLabel)
+
+        scene.edgeList.remove(self)
+
+        scene.removeItem(self)
+       
+        # need caller so we don't mutate a list that
+        # is being iterated through in Vertex.remove()
+        if caller is not self._originVertex:
+            self._originVertex._edges.remove(self)
+        if caller is not self._linkVertex:
+            self._linkVertex._edges.remove(self)
