@@ -1,5 +1,5 @@
 import networkx as nx
-from networkx.algorithms.approximation.clique import large_clique_size
+from networkx.algorithms.approximation.clique import large_clique_size as large_clique_size
 
 from itertools import combinations
 from math import log
@@ -28,7 +28,7 @@ def is_induced_clique(g, inducing_set):
     :param inducing_set: the set of vertices the graph will be induced on
     :return: true if the induced subgraph is a clique, false otherwise
     """
-    induced = g.induced_subgraph(inducing_set)
+    induced = nx.induced_subgraph(g, inducing_set)
 
     n = g.number_of_nodes()
 
@@ -43,7 +43,7 @@ def neighbor_set(g, node_subset):
     :return: the set of nodes that are neighbors to every node in the subset
     """
 
-    neighbors = g.restricted_view(node_subset).nodes()
+    neighbors = nx.restricted_view(g, node_subset, []).nodes()
 
     for v in node_subset:
         neighbors &= g[v]
@@ -90,8 +90,8 @@ def feige(graph: nx.Graph, t=None):
                     # Step 5: If the subset is good, add it to c and do the next iteration
                     #         on the subgraph induced by the neighbor set
 
-                    new_subgraph = subgraph.induced_subgraph(neighbors)
-                    c |= set(subset)
+                    new_subgraph = nx.induced_subgraph(subgraph, neighbors)
+                    c = c | set(subset)
 
                     return iteration(n, c)
         # Step 6: If all subsets are poor, then end the phase
@@ -102,9 +102,9 @@ def feige(graph: nx.Graph, t=None):
     is_good = False
     verts = set()
     while not is_good:
-        g = g.restricted_view(verts)
+        graph = nx.restricted_view(graph, verts, [])
 
-        is_good, verts = iteration(g, verts)
+        is_good, verts = iteration(graph, verts)
 
     return verts
 
