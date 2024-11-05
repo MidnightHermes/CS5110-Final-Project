@@ -27,13 +27,13 @@ def _adjust_probability(p, n, m, directed):
     return (m_expected - m) / edges_left
 
 
-def _finish_random_graph(g, p, seed):
+def _finish_random_graph(g, p):
     already_existing_edges = g.edges
 
     n = g.number_of_nodes()
     m = len(already_existing_edges)
 
-    directed = isinstance(nx.DiGraph)
+    directed = isinstance(g, nx.DiGraph)
 
     p = _adjust_probability(p, n, m, directed)
     
@@ -52,7 +52,11 @@ def complete_graph(n, directed):
 
     return g
 
+def with_clique(n, clique_size, p):
+    g = complete_graph(clique_size, False)
 
+    g.add_nodes_from(range(clique_size, n))
+    return _finish_random_graph(g, p)
 
 class RandomGraph:
     # TODO: Create different graph generation methods and pass type of graph as parameter
