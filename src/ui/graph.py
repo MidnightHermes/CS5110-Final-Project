@@ -64,7 +64,6 @@ class GraphScene:
             linkVertex.addEdge(edge)
             self.scene.edgeList.append(edge)
             self.scene.addItem(edge)
-            self.scene.addItem(edge._hitBox)
     
     def addEdge(self, e):
         e.accept()
@@ -95,7 +94,6 @@ class GraphScene:
             self.scene.edgeList.append(edge)
             # Add edge _and_ cosmetic edge to scene
             self.scene.addItem(edge)
-            self.scene.addItem(edge._hitBox)
             self.scene._originVertex = None
 
     def addVertex(self, e):

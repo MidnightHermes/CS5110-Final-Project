@@ -1,7 +1,7 @@
 import math
 from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtGui import QPen, QPolygonF, QBrush
-from PyQt6.QtWidgets import QGraphicsLineItem, QGraphicsPolygonItem
+from PyQt6.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem, QGraphicsPolygonItem
 
 from ui.text_items import EdgeWeightTextItem
 
@@ -15,13 +15,15 @@ def validateWeight(weight: str):
     except ValueError:
         pass
 
-class Edge(QGraphicsLineItem):
+class Edge(QGraphicsItemGroup):
     ARROW_HEIGHT = 25
     ARROW_WIDTH = 20
 
     _created = 0
 
     def __init__(self, originVertex, linkVertex, directed=True, weight=None, doOffset=False):
+        super().__init__()
+
         if weight is None:
             weight = _weight
 
@@ -30,19 +32,24 @@ class Edge(QGraphicsLineItem):
         x2 = linkVertex.x
         y2 = linkVertex.y
 
+
         # Create an invisible line that is 4x as thick as the visible line
         #   to make it easier to grab the edge.
-        super().__init__(x1, y1, x2, y2)
-        self.setZValue(-2)
+        self._visibleLine = QGraphicsLineItem(x1, y1, x2, y2)
+        self._visibleLine.setZValue(-2)
+
         self._linePen = QPen(Qt.GlobalColor.black)
         self._linePen.setWidth(3)
-        self.setPen(self._linePen)
+        self._visibleLine.setPen(self._linePen)
+
+        self.addToGroup(self._visibleLine)
 
         # Then create a cosmetic (visible) line that is behind the invisible line.
         #   This is the line that the user sees.
         # Since this line is behind the invisible line, the user can only interact
         #   with the invisible line, as such this visible line is purely cosmetic.
         self._hitBox = self.createHitBox(x1, y1, x2, y2)
+        self.addToGroup(self._hitBox)
 
         self.stamp = Edge._created
         Edge._created += 1
@@ -58,9 +65,15 @@ class Edge(QGraphicsLineItem):
         self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
         self._arrowHead.setZValue(-1)
 
+        if directed:
+            self.addToGroup(self._arrowHead)
+
     @property
     def weight(self):
         return self._weight
+
+    def line(self):
+        return self._visibleLine.line()
 
     def createHitBox(self, x1, y1, x2, y2) -> QGraphicsLineItem:
         hitBox = QGraphicsLineItem(x1, y1, x2, y2)
@@ -71,9 +84,6 @@ class Edge(QGraphicsLineItem):
         hitBox.setOpacity(0.0)
 
         return hitBox
-
-    def isUnderMouse(self) -> bool:
-        return self._hitBox.isUnderMouse()
 
     def getArrow(self) -> QPolygonF:
         r = self._linkVertex.radius
@@ -113,7 +123,7 @@ class Edge(QGraphicsLineItem):
         newY1 = self._originVertex.y
         newX2 = self._linkVertex.x
         newY2 = self._linkVertex.y
-        self.setLine(newX1, newY1, newX2, newY2)
+        self._visibleLine.setLine(newX1, newY1, newX2, newY2)
         self._hitBox.setLine(newX1, newY1, newX2, newY2)
         self._weightText.setPos(self._weightText.determinePosition())
 
