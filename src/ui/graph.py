@@ -67,6 +67,10 @@ class GraphScene(ItemGroup):
             self._graph = nx.DiGraph()
 
     @property
+    def graph(self):
+        return self._graph
+
+    @property
     def vertices(self):
         return self._vertexList
     

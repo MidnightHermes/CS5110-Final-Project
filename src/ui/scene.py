@@ -82,4 +82,4 @@ class Scene(QGraphicsScene):
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key.Key_P:
-            print(self._graph.adj)
+            print(self._graphScene.graph.adj)
