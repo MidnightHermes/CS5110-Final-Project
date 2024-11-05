@@ -27,15 +27,14 @@ class Edge(QGraphicsItemGroup):
         if weight is None:
             weight = _weight
 
-        x1 = originVertex.x
-        y1 = originVertex.y
-        x2 = linkVertex.x
-        y2 = linkVertex.y
+        self._originVertex = originVertex
+        self._linkVertex = linkVertex
 
+        pOrigin, pLink = self.getEndpoints()
 
         # Create an invisible line that is 4x as thick as the visible line
         #   to make it easier to grab the edge.
-        self._visibleLine = QGraphicsLineItem(x1, y1, x2, y2)
+        self._visibleLine = QGraphicsLineItem(pOrigin.x(), pOrigin.y(), pLink.x(), pLink.y())
         self._visibleLine.setZValue(-2)
 
         self._linePen = QPen(Qt.GlobalColor.black)
@@ -48,7 +47,7 @@ class Edge(QGraphicsItemGroup):
         #   This is the line that the user sees.
         # Since this line is behind the invisible line, the user can only interact
         #   with the invisible line, as such this visible line is purely cosmetic.
-        self._hitBox = self.createHitBox(x1, y1, x2, y2)
+        self._hitBox = self.createHitBox(pOrigin.x(), pOrigin.y(), pLink.x(), pLink.y())
         self.addToGroup(self._hitBox)
 
         self.stamp = Edge._created
@@ -57,8 +56,6 @@ class Edge(QGraphicsItemGroup):
         self._weightText = EdgeWeightTextItem(f'{_weight:g}', self, doOffset)
         self._weight = _weight
 
-        self._originVertex = originVertex
-        self._linkVertex = linkVertex
 
         # Handle arrowHead
         self._arrowHead = QGraphicsPolygonItem(self.getArrow(), self)
@@ -67,6 +64,34 @@ class Edge(QGraphicsItemGroup):
 
         if directed:
             self.addToGroup(self._arrowHead)
+
+    def getEndpoints(self):
+        theta = self.theta
+
+        cos = math.cos(theta)
+        sin = math.sin(theta)
+
+        cossin = QPointF(cos, sin)
+
+        originOffs = self._originVertex.radius * cossin
+        originRim = self._originVertex.center + originOffs
+
+        linkOffs = self._linkVertex.radius * cossin
+        linkRim = self._linkVertex.center - linkOffs
+
+        return originRim, linkRim
+
+    @property
+    def dx(self):
+        return self._linkVertex.x - self._originVertex.x
+
+    @property
+    def dy(self):
+        return self._linkVertex.y - self._originVertex.y
+
+    @property
+    def theta(self):
+        return math.atan2(self.dy, self.dx)
 
     @property
     def weight(self):
@@ -86,23 +111,14 @@ class Edge(QGraphicsItemGroup):
         return hitBox
 
     def getArrow(self) -> QPolygonF:
-        r = self._linkVertex.radius
-
-        dx = self.line().dx()
-        dy = self.line().dy()
-    
-        origin = self.line().p2()
-
-        theta = math.atan2(dy, dx)
+        theta = self.theta
 
         cos = math.cos(theta)
         sin = math.sin(theta)
 
         cossin = QPointF(cos, sin)
 
-        # Tip of the arrow head
-        tipOffs = r * cossin
-        tip = origin - tipOffs
+        tip = self.line().p2()
 
         # Coordinate of where the base of the arrowhead
         # intersects the line
@@ -119,12 +135,9 @@ class Edge(QGraphicsItemGroup):
         return QPolygonF([tip, leftWing, rightWing])
 
     def updatePosition(self):
-        newX1 = self._originVertex.x
-        newY1 = self._originVertex.y
-        newX2 = self._linkVertex.x
-        newY2 = self._linkVertex.y
-        self._visibleLine.setLine(newX1, newY1, newX2, newY2)
-        self._hitBox.setLine(newX1, newY1, newX2, newY2)
+        origin, link = self.getEndpoints()
+        self._visibleLine.setLine(origin.x(), origin.y(), link.x(), link.y())
+        self._hitBox.setLine(origin.x(), origin.y(), link.x(), link.y())
         self._weightText.setPos(self._weightText.determinePosition())
 
         # Handle arrowHead
