@@ -157,3 +157,18 @@ class GraphScene(ItemGroup):
     def verticesMoved(self):
         for v in self._vertexList:
             v.updateEdges()
+
+    def removeFromGroup(self, item, call_backend=True):
+        super().removeFromGroup(item)
+
+        if isinstance(item, Vertex):
+            self._vertexList.remove(item)
+            if call_backend:
+                self._graph.remove_node(item.label)
+        else:
+            assert(isinstance(item, Edge))
+            self._edgeList.remove(item)
+            
+            if call_backend:
+                self._graph.remove_edge(*item.pair)
+

@@ -97,6 +97,10 @@ class Edge(QGraphicsItemGroup):
     def weight(self):
         return self._weight
 
+    @property
+    def pair(self):
+        return (self._originVertex.label, self._linkVertex.label)
+
     def line(self):
         return self._visibleLine.line()
 
@@ -144,16 +148,9 @@ class Edge(QGraphicsItemGroup):
         self._arrowHead.setPolygon(self.getArrow())
 
     def remove(self, call_backend=True, caller=None):
-        scene = self.scene()
+        group = self.parentItem()
 
-        if call_backend:
-            fromLabel = self._originVertex.label
-            toLabel = self._linkVertex.label
-            scene._graph.remove_edge(fromLabel, toLabel)
-
-        scene.edgeList.remove(self)
-
-        scene.removeItem(self)
+        group.removeFromGroup(self, call_backend)
        
         # need caller so we don't mutate a list that
         # is being iterated through in Vertex.remove()

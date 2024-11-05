@@ -92,17 +92,14 @@ class Vertex(QGraphicsEllipseItem):
         return self.cursor() == Vertex.CUR_DRAG
 
     def remove(self):
-        scene = self.scene()
+        group = self.parentItem()
 
-        scene.removeItem(self)
-        scene.vertexList.remove(self)
+        group.removeFromGroup(self)
 
         for edge in self._edges:
             # need to specify that this object is removing the edge
             # so this edge list isn't modified
             edge.remove(False, self)
-
-        scene._graph.remove_node(self.label)
 
     def mousePressEvent(self, e):
         if (self.isSelectable() and
