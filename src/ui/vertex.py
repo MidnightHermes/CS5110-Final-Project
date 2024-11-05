@@ -53,6 +53,10 @@ class Vertex(QGraphicsEllipseItem):
         return self.sceneBoundingRect().center().y()
 
     @property
+    def center(self) -> QPointF:
+        return self.sceneBoundingRect().center()
+
+    @property
     def diameter(self) -> int:
         return self._diameter
 
