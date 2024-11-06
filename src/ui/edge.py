@@ -24,6 +24,7 @@ class Edge(QGraphicsItemGroup):
     def __init__(self, originVertex, linkVertex, directed=True, weight=None, doOffset=False):
         super().__init__()
 
+        global _weight
         if weight is None:
             weight = _weight
         else:
