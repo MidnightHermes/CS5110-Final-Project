@@ -1,6 +1,5 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-import networkx as nx
 
 from ui.window import Window
 from algorithms.random_graph import RandomGraph

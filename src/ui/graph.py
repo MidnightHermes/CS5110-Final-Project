@@ -93,14 +93,14 @@ class GraphScene(ItemGroup):
             edge._weightText.setVisible(weighted)
 
     def importGraph(self, graph):
-        # TODO: Find a better way to organize nodes when importing graph
-        #   Currently just lines them up in order
-        pos = (-Vertex.DIAMETER, Vertex.DIAMETER)
-        for node in graph.nodes:
-            pos = (pos[0] + 2 * Vertex.DIAMETER, pos[1])
-            if pos[0] > self.sceneRect().width():
-                pos = (Vertex.DIAMETER, pos[1] + 2 * Vertex.DIAMETER)
-            vertex = Vertex(*pos)
+        # Use networkx's shell layout to position vertices
+        positions = nx.shell_layout(graph)
+        # Then normalize the positions to match PyQt6 coordinate system
+        min_x = min(x for x, y in positions.values())
+        min_y = min(y for x, y in positions.values())
+        for node, (x, y) in positions.items():
+            # And scale the positions to fit the size of the scene
+            vertex = Vertex((x - min_x * 2) * 200, (y - min_y * 1.5) * 150)
             vertex.label = node
             self._vertexList.append(vertex)
             self.addToGroup(vertex)
@@ -142,7 +142,6 @@ class GraphScene(ItemGroup):
             self._originVertex.addEdge(edge)
             nearest_vertex.addEdge(edge)
             self._edgeList.append(edge)
-            # Add edge _and_ cosmetic edge to scene
             self.addToGroup(edge)
             self._originVertex = None
 
@@ -175,4 +174,3 @@ class GraphScene(ItemGroup):
             
             if call_backend:
                 self._graph.remove_edge(*item.pair)
-
