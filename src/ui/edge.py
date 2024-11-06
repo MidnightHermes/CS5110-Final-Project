@@ -26,6 +26,8 @@ class Edge(QGraphicsItemGroup):
 
         if weight is None:
             weight = _weight
+        else:
+            _weight = weight
 
         self._originVertex = originVertex
         self._linkVertex = linkVertex
