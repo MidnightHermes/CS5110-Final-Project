@@ -30,7 +30,7 @@ def is_induced_clique(g, inducing_set):
     """
     induced = nx.induced_subgraph(g, inducing_set)
 
-    n = g.number_of_nodes()
+    n = induced.number_of_nodes()
 
     return all(d == (n-1) for (_, d) in induced.degree)
 
@@ -46,14 +46,18 @@ def neighbor_set(g, node_subset):
     neighbors = nx.restricted_view(g, node_subset, []).nodes()
 
     for v in node_subset:
-        neighbors &= g[v]
+        neighbors &= set(g[v])
 
     return neighbors
 
 
 def feige(graph: nx.Graph, t=None):
     """
-
+    Calculates an approximation of the maxiumum clique in a graph with an
+    approximation ratio of O(n(loglogn)^2 / (logn)^3).
+    :param g: the graph we will find a maximum clique in
+    :param t: parameter which changes how fast and how accurate the algorithm is. Recommended value is logn / loglogn.
+    :return: a set of nodes which constitute a clique
     """
 
     n = graph.number_of_nodes()
@@ -93,7 +97,7 @@ def feige(graph: nx.Graph, t=None):
                     new_subgraph = nx.induced_subgraph(subgraph, neighbors)
                     c = c | set(subset)
 
-                    return iteration(n, c)
+                    return iteration(new_subgraph, c)
         # Step 6: If all subsets are poor, then end the phase
         return False, nodes
 
