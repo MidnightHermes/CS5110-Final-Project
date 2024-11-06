@@ -58,7 +58,7 @@ class Window(QWidget):
         vbox.addLayout(vbox_top)
     
     def confirmGraphType(self):
-        self.scene.setGraphType(self.directed_toggle.isChecked())
+        self.scene._graphScene.setGraphType(self.directed_toggle.isChecked())
 
     def initStateButtons(self, vbox):
         self.select_mode = QRadioButton("Select")
@@ -87,7 +87,7 @@ class Window(QWidget):
         weight_input.editingFinished.connect(lambda: validateWeight(weight_input.text()))
         weight_checkbox = QCheckBox("Weighted")
         weight_checkbox.setChecked(True)
-        weight_checkbox.clicked.connect(self.scene.setWeighted)
+        weight_checkbox.clicked.connect(self.scene._graphScene.setWeighted)
         # Add the widgets to the hbox which is then added to the vbox
         weight_hbox.addWidget(weight_checkbox)
         weight_hbox.addWidget(weight_input)
