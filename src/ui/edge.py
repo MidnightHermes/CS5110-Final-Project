@@ -58,7 +58,6 @@ class Edge(QGraphicsItemGroup):
         self._weightText = EdgeWeightTextItem(f'{_weight:g}', self._visibleLine, doOffset)
         self._weight = _weight
 
-
         # Handle arrowHead
         self._arrowHead = QGraphicsPolygonItem(self.getArrow(), self)
         self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
