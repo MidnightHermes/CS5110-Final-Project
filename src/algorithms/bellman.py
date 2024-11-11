@@ -2,6 +2,13 @@ import networkx as nx
 from networkx.classes.function import get_edge_attributes
 
 def bellman_ford(g, source):
+    """
+    Computes all the shortest paths in a directed weighted graph with negative edge weights
+    (but not negative cycles) between every node and some source node s.
+    :param g: the graph to perform the algorithm on
+    :param source: the source node to query in g
+    """
+
     n = g.number_of_nodes()
     edges = g.edges
 
