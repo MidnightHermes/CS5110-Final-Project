@@ -7,8 +7,8 @@ def bellman_ford(g, source):
 
     inf = abs(max(get_edge_attributes(g, 'weight').values())) + 1
 
-    distance = [inf] * n
-    predecessor = [None] * n
+    distance = {v: inf for v in g.nodes}
+    predecessor = {v: None for v in g.nodes}
 
     distance[source] = 0
 
