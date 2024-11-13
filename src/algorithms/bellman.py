@@ -7,6 +7,7 @@ def bellman_ford(g, source):
     (but not negative cycles) between every node and some source node s.
     :param g: the graph to perform the algorithm on
     :param source: the source node to query in g
+    :return: None if a negative cycle exists. Otherwise returns a pair of dictionaries containing (1) the distances of each node from source (2) the predecessors of each node u in the shortest path from source to u.
     """
 
     n = g.number_of_nodes()
