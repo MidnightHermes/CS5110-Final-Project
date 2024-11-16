@@ -3,6 +3,10 @@ import networkx as nx
 
 from bellman import NegativeCycleException, bellman_ford
 
+def add_weighted_edges(g, edges):
+    for u, v, w in edges:
+        g.add_edge(u, v, weight=w)
+
 class Cycle:
     @staticmethod
     def _succs(tup):
@@ -63,20 +67,37 @@ class TestNegativeCycles(unittest.TestCase):
         cls.twoCycle = nx.DiGraph()
         cls.twoCycle.add_nodes_from([0, 1])
 
-        cls.twoCycle.add_edge(0, 1, weight=7)
-        cls.twoCycle.add_edge(1, 0, weight=-8)
+        add_weighted_edges(cls.twoCycle, [(0, 1, 7),
+                                          (1, 0, -8)])
 
         cls.nonTrivialCycle = nx.DiGraph()
         cls.nonTrivialCycle.add_nodes_from(range(6))
 
-        cls.nonTrivialCycle.add_edge(1, 0, weight=3)
-        cls.nonTrivialCycle.add_edge(2, 1, weight=-5)
-        cls.nonTrivialCycle.add_edge(0, 2, weight=4)
-        cls.nonTrivialCycle.add_edge(1, 5, weight=-17)
-        cls.nonTrivialCycle.add_edge(5, 2, weight=30)
-        cls.nonTrivialCycle.add_edge(5, 4, weight=2)
-        cls.nonTrivialCycle.add_edge(4, 3, weight=16)
-        cls.nonTrivialCycle.add_edge(3, 2, weight=3)
+        add_weighted_edges(cls.nonTrivialCycle, [(1, 0, 3),
+                                                 (2, 1, -5),
+                                                 (0, 2, 4),
+                                                 (1, 5, -17),
+                                                 (5, 2, 30),
+                                                 (5, 4, 2),
+                                                 (4, 3, 16),
+                                                 (3, 2, 3)])
+        
+        cls.nonSourceCycle = nx.DiGraph()
+        cls.nonSourceCycle.add_nodes_from(range(8))
+
+        add_weighted_edges(cls.nonSourceCycle, [(0, 1, -3),
+                                                (0, 7, 3),
+                                                (1, 2, 4),
+                                                (1, 6, -5),
+                                                (2, 3, -5),
+                                                (2, 6, 3),
+                                                (3, 0, 1),
+                                                (4, 0, 8),
+                                                (4, 5, 1),
+                                                (4, 2, 7),
+                                                (5, 1, 1),
+                                                (6, 1, 6),
+                                                (7, 3, -2)])
 
     def checkCycle(self, g, s, cycle):
         self.assertRaises(NegativeCycleException, bellman_ford, g, s)
@@ -94,8 +115,11 @@ class TestNegativeCycles(unittest.TestCase):
     def test_twoCycle(self):
         self.checkCycle(self.twoCycle, 0, (0, 1))
     
-    def testNonTrivialCycle(self):
+    def test_nonTrivialCycle(self):
         self.checkCycle(self.nonTrivialCycle, 1, (1, 5, 4, 3, 2))
+
+    def test_nonSourceCycle(self):
+        self.checkCycle(self.nonSourceCycle, 4, (0, 1, 2, 3))
 
 if __name__ == '__main__':
     unittest.main()
