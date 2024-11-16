@@ -4,12 +4,25 @@ import networkx as nx
 from bellman import NegativeCycleException, bellman_ford
 
 def add_weighted_edges(g, edges):
+    """
+    Take a graph and a list of triples representing weighted edges to
+    quickly add edges to a graph.
+    :param g: the graph we are adding edges to
+    :param edges: the list of edge triples
+    """
     for u, v, w in edges:
         g.add_edge(u, v, weight=w)
 
 class Cycle:
+    """
+    Represents cycles so they can be tested for equivalence even if their
+    tuples start in different places
+    """
     @staticmethod
     def _succs(tup):
+        """
+        Generates every pair consisting of a node and its successor in a cycle
+        """
         for i in range(len(tup)):
             yield tup[i], tup[(i + 1) % len(tup)]
 
