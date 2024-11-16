@@ -1,6 +1,39 @@
 import networkx as nx
 from networkx.classes.function import get_edge_attributes
 
+class NegativeCycleException(Exception):
+    @staticmethod
+    def build_cycle(u, v, preds):
+        preds[v] = u
+
+        visited = {k: False for k in preds.keys()}
+        visited[v] = True
+
+        while not visited[u]:
+            visited[u] = True
+            u = preds[u]
+
+        cycle = [u]
+        v = preds[u]
+        while v != u:
+            cycle.append(v)
+            v = preds[v]
+
+        cycle.reverse()
+
+        return tuple(cycle)
+
+
+    def __init__(self, u, v, preds):
+        self._cycle = NegativeCycleException.build_cycle(u, v, preds)
+
+        super().__init__(f"Negative cycle composed of {self._cycle}")
+
+    @property
+    def cycle(self):
+        return self._cycle
+
+
 def bellman_ford(g, source):
     """
     Computes all the shortest paths in a directed weighted graph with negative edge weights
@@ -30,6 +63,6 @@ def bellman_ford(g, source):
     for (u, v) in edges:
         w = edges[u, v]['weight']
         if distance[u] + w < distance[v]:
-            return None
+            raise NegativeCycleException(u, v, predecessor)
 
     return distance, predecessor
