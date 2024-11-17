@@ -5,58 +5,183 @@ import random
 
 DEFAULT_SEED = 10
 
-def _edge_gen(n, directed):
-    f = itertools.permutations if directed else itertools.combinations
+class RandomGraphBuilder:
+    def __init__(self, n, directed=False):
+        self._graph = nx.DiGraph() if directed else nx.Graph()
 
-    return f(range(n), 2)
+        self._graph.add_nodes_from(range(n))
 
-def _adjust_probability(p, n, m, directed):
-    m_total = n * (n - 1)
-    if directed:
-        m_total /= 2
+    def random_edges(self, p):
+        edges_left = (e for e in self._edge_gen() if e not in self._graph.edges)
+        for e in edges_left:
+            if random.random() < p:
+                self._graph.add_edge(*e)
 
-    if m == m_total:
-        return 1.0
+        return self        
 
-    assert(m < m_total)
+    @staticmethod
+    def _adjust_probability(p, n, m, directed):
+        m_total = n * (n - 1)
+        if directed:
+            m_total /= 2
 
-    m_expected = m_total * p
+        if m == m_total:
+            return 1.0
+
+        assert(m < m_total)
+
+        m_expected = m_total * p
+        
+        edges_left = m_total - m
+
+        if m_expected - m < 0:
+            raise ValueError("Current edge density exceeds desired edge density")
+
+        return (m_expected - m) / edges_left
+
+    def finalize(self):
+        already_existing_edges = self._graph.edges
+
+        n = self._graph.number_of_nodes()
+        m = len(already_existing_edges)
+
+        p = RandomGraphBuilder._adjust_probability(self._p, n, m, self.directed)
+        
+        edges_left = (e for e in self._edge_gen() if e not in already_existing_edges)
+        for e in edges_left:
+            if random.random() < p:
+                self._graph.add_edge(*e)
+
+        return self
+
+    def build(self):
+        return self._graph
+
+    @property
+    def directed(self):
+        return self._graph.is_directed()
     
-    edges_left = m_total - m
+    def directed(self, will_be_directed):
+        if will_be_directed:
+            self._graph = self._graph.to_directed()
+        else:
+            self._graph = self._graph.to_undirected()
 
-    return (m_expected - m) / edges_left
+        return self
+        
+    def _edge_gen(self, subset=None):
+        if subset is None:
+            subset = self._graph.nodes
 
+        f = itertools.permutations if self.directed else itertools.combinations
 
-def _finish_random_graph(g, p):
-    already_existing_edges = g.edges
+        return f(subset, 2)
 
-    n = g.number_of_nodes()
-    m = len(already_existing_edges)
+    def complete(self):
+        self._graph.add_edges_from(self._edge_gen())
 
-    directed = isinstance(g, nx.DiGraph)
+        return self
 
-    p = _adjust_probability(p, n, m, directed)
+    def clique(self, size, add_new_nodes=False):
+        n = self._graph.number_of_nodes()
+
+        if not add_new_nodes and size > n:
+            raise ValueError("Tried to build clique large than the graph")
+        
+        if add_new_nodes:
+            new_nodes = range(n, n + size)
+
+            self._graph.add_nodes_from(new_nodes)
+
+            subset = new_nodes
+        else:
+            subset = random.sample(list(self._graph.nodes), size)
+
+        self._graph.add_edges_from(self._edge_gen(subset=subset))
+
+        return self
     
-    edges_left = (e for e in _edge_gen(n, directed) if e not in already_existing_edges)
-    for e in edges_left:
-        if random.random() < p:
-            g.add_edge(*e)
+    @staticmethod
+    def _scour(g, node):
+        visited = set()
 
-    return g
+        stack = [node]
 
-def complete_graph(n, directed):
-    g = nx.DiGraph() if directed else nx.Graph()
+        while len(stack) > 0:
+            u = stack.pop()
 
-    for e in _edge_gen(n, directed):
-        g.add_edge(*e)
+            if u in visited:
+                continue
 
-    return g
+            visited.add(u)
 
-def with_clique(n, clique_size, p):
-    g = complete_graph(clique_size, False)
+            stack.extend(g.adj[u])
 
-    g.add_nodes_from(range(clique_size, n))
-    return _finish_random_graph(g, p)
+        return visited
+    
+    def _connected_components(self, strongly=False):
+        g = self._graph.copy()
+
+        if not strongly:
+            g = g.to_undirected()
+
+        components = []
+
+        while g.number_of_nodes() > 0:
+            u = random.choice(list(g.nodes))
+
+            cc = RandomGraphBuilder._scour(g, u)
+            components.append(cc)
+            g.remove_nodes_from(cc)
+
+        return components
+    
+    def connected(self):
+        if self._graph.number_of_nodes() == 0:
+            return self
+
+        ccs = self._connected_components()
+
+        if len(ccs) == 1:
+            return self
+        
+        while len(ccs) > 1:
+            c1, c2 = random.sample(ccs, 2)
+
+            ccs.remove(c1)
+            ccs.remove(c2)
+
+            n1 = random.choice(list(c1))
+            n2 = random.choice(list(c2))
+
+            self._graph.add_edge(n1, n2)
+
+            c1.union(c2)
+
+            ccs.append(c1)
+
+        return self
+    
+    def weighted(self, weight_range):
+        for e in self._graph.edges:
+            if 'weight' not in self._graph.edges[e].keys():
+                self._graph.edges[e]['weight'] = random.choice(weight_range)
+
+        return self
+
+    def cycle(self, length, negative_weight=False):
+        nodes = random.sample(list(self._graph.nodes), length)
+
+        for i in range(len(nodes)):
+            j = (i + 1) % len(nodes)
+
+            self._graph.add_edge(nodes[i], nodes[j])
+
+            if negative_weight:
+                self._graph.edges[nodes[i], nodes[j]]['weight'] = -1
+
+        return self
+
 
 class RandomGraph:
     # TODO: Create different graph generation methods and pass type of graph as parameter
@@ -78,6 +203,6 @@ class RandomGraph:
         num_edges = random.randint(min_edges, max_edges)
 
         G = nx.gnm_random_graph(num_nodes, num_edges, directed=directed)
-        for edge in G.edges():
+        for edge in G.edges:
             G.edges[edge]['weight'] = random.randint(1, seed)  # Assign random weights between 1 and 10
         return G
