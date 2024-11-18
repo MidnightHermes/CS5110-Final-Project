@@ -3,8 +3,6 @@ import networkx as nx
 import random
 
 
-DEFAULT_SEED = 10
-
 def _edge_gen(nodes, directed):
     f = itertools.permutations if directed else itertools.combinations
 
@@ -143,7 +141,7 @@ class RandomGraphBuilder:
 
             return g
         
-        return self._next(lambda g: _clique(g, size, add_new_nodes=add_new_nodes))
+        return self._next(lambda g: _clique(g, size, add_new_nodes))
     
     def connected(self):
         def _connected(g):
