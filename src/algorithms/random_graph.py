@@ -5,182 +5,199 @@ import random
 
 DEFAULT_SEED = 10
 
-class RandomGraphBuilder:
-    def __init__(self, n, directed=False):
-        self._graph = nx.DiGraph() if directed else nx.Graph()
+def _edge_gen(nodes, directed):
+    f = itertools.permutations if directed else itertools.combinations
 
-        self._graph.add_nodes_from(range(n))
+    return f(nodes, 2)
+
+def _scour(g, node):
+    visited = set()
+
+    stack = [node]
+
+    while len(stack) > 0:
+        u = stack.pop()
+
+        if u in visited:
+            continue
+
+        visited.add(u)
+
+        stack.extend(g.adj[u])
+
+    return visited
+
+def _connected_components(g, strongly=False):
+    g = g.copy()
+
+    if not strongly:
+        g = g.to_undirected()
+
+    components = []
+
+    while g.number_of_nodes() > 0:
+        u = random.choice(list(g.nodes))
+
+        cc = _scour(g, u)
+        components.append(cc)
+        g.remove_nodes_from(cc)
+
+    return components
+
+
+class RandomGraphBuilder:
+    def __init__(self, directed=False):
+        self._init = nx.DiGraph if directed else nx.Graph
+
+        self._directed = directed
+
+        self._nodes = 0
+
+        self._transforms = []
+
+    def __copy__(self):
+        new_builder = RandomGraphBuilder()
+
+        new_builder._init = self._init
+        new_builder._directed = self._directed
+        new_builder._nodes = self._nodes
+        new_builder._transforms = self._transforms.copy()
+
+        return new_builder
+    
+    def _next(self, f):
+        new_builder = self.__copy__()
+
+        new_builder._transforms.append(f)
+
+        return new_builder
+
+    def nodes(self, n):
+        new_builder = self.__copy__()
+        new_builder._nodes = n
+
+        return new_builder
 
     def random_edges(self, p):
-        edges_left = (e for e in self._edge_gen() if e not in self._graph.edges)
-        for e in edges_left:
-            if random.random() < p:
-                self._graph.add_edge(*e)
+        def _random_edges(g, p):
+            edges_left = (e for e in _edge_gen(g.nodes, g.is_directed()) if e not in g.edges)
+            for e in edges_left:
+                if random.random() < p:
+                    g.add_edge(*e)
 
-        return self        
-
-    @staticmethod
-    def _adjust_probability(p, n, m, directed):
-        m_total = n * (n - 1)
-        if directed:
-            m_total /= 2
-
-        if m == m_total:
-            return 1.0
-
-        assert(m < m_total)
-
-        m_expected = m_total * p
+            return g
         
-        edges_left = m_total - m
-
-        if m_expected - m < 0:
-            raise ValueError("Current edge density exceeds desired edge density")
-
-        return (m_expected - m) / edges_left
-
-    def finalize(self):
-        already_existing_edges = self._graph.edges
-
-        n = self._graph.number_of_nodes()
-        m = len(already_existing_edges)
-
-        p = RandomGraphBuilder._adjust_probability(self._p, n, m, self.directed)
-        
-        edges_left = (e for e in self._edge_gen() if e not in already_existing_edges)
-        for e in edges_left:
-            if random.random() < p:
-                self._graph.add_edge(*e)
-
-        return self
+        return self._next(lambda g: _random_edges(g, p))
 
     def build(self):
-        return self._graph
+        g = self._init()
+
+        g.add_nodes_from(range(self._nodes))
+
+        for f in self._transforms:
+            g = f(g)
+
+        return g
 
     @property
     def directed(self):
-        return self._graph.is_directed()
+        return self._directed
     
     def directed(self, will_be_directed):
+        new_builder = self.__copy__()
+
         if will_be_directed:
-            self._graph = self._graph.to_directed()
+            new_builder._init = nx.DiGraph
+            new_builder._directed = True
         else:
-            self._graph = self._graph.to_undirected()
+            new_builder._init = nx.Graph
+            new_builder._directed = False
 
-        return self
-        
-    def _edge_gen(self, subset=None):
-        if subset is None:
-            subset = self._graph.nodes
-
-        f = itertools.permutations if self.directed else itertools.combinations
-
-        return f(subset, 2)
+        return new_builder
 
     def complete(self):
-        self._graph.add_edges_from(self._edge_gen())
+        def _complete(g):
+            g.add_edges_from(_edge_gen(g.nodes, g.is_directed()))
 
-        return self
+            return g
+        
+        return self._next(_complete)
 
     def clique(self, size, add_new_nodes=False):
-        n = self._graph.number_of_nodes()
+        def _clique(g, size, add_new_nodes):
+            n = g.number_of_nodes()
 
-        if not add_new_nodes and size > n:
-            raise ValueError("Tried to build clique large than the graph")
+            if not add_new_nodes and size > n:
+                raise ValueError("Tried to build clique larger than the graph")
+            
+            if add_new_nodes:
+                new_nodes = range(n, n + size)
+
+                g.add_nodes_from(new_nodes)
+
+                subset = new_nodes
+            else:
+                subset = random.sample(list(g.nodes), size)
+
+            g.add_edges_from(_edge_gen(subset, g.is_directed()))
+
+            return g
         
-        if add_new_nodes:
-            new_nodes = range(n, n + size)
-
-            self._graph.add_nodes_from(new_nodes)
-
-            subset = new_nodes
-        else:
-            subset = random.sample(list(self._graph.nodes), size)
-
-        self._graph.add_edges_from(self._edge_gen(subset=subset))
-
-        return self
-    
-    @staticmethod
-    def _scour(g, node):
-        visited = set()
-
-        stack = [node]
-
-        while len(stack) > 0:
-            u = stack.pop()
-
-            if u in visited:
-                continue
-
-            visited.add(u)
-
-            stack.extend(g.adj[u])
-
-        return visited
-    
-    def _connected_components(self, strongly=False):
-        g = self._graph.copy()
-
-        if not strongly:
-            g = g.to_undirected()
-
-        components = []
-
-        while g.number_of_nodes() > 0:
-            u = random.choice(list(g.nodes))
-
-            cc = RandomGraphBuilder._scour(g, u)
-            components.append(cc)
-            g.remove_nodes_from(cc)
-
-        return components
+        return self._next(lambda g: _clique(g, size, add_new_nodes=add_new_nodes))
     
     def connected(self):
-        if self._graph.number_of_nodes() == 0:
-            return self
+        def _connected(g):
+            if g.number_of_nodes() == 0:
+                return g
 
-        ccs = self._connected_components()
+            ccs =_connected_components(g)
 
-        if len(ccs) == 1:
-            return self
+            if len(ccs) == 1:
+                return g
+            
+            while len(ccs) > 1:
+                c1, c2 = random.sample(ccs, 2)
+
+                ccs.remove(c1)
+                ccs.remove(c2)
+
+                n1 = random.choice(list(c1))
+                n2 = random.choice(list(c2))
+
+                g.add_edge(n1, n2)
+
+                c1 |= c2
+
+                ccs.append(c1)
+
+            return g
         
-        while len(ccs) > 1:
-            c1, c2 = random.sample(ccs, 2)
-
-            ccs.remove(c1)
-            ccs.remove(c2)
-
-            n1 = random.choice(list(c1))
-            n2 = random.choice(list(c2))
-
-            self._graph.add_edge(n1, n2)
-
-            c1.union(c2)
-
-            ccs.append(c1)
-
-        return self
+        return self._next(_connected)
     
     def weighted(self, weight_range):
-        for e in self._graph.edges:
-            if 'weight' not in self._graph.edges[e].keys():
-                self._graph.edges[e]['weight'] = random.choice(weight_range)
+        def _weighted(g, weight_range):
+            for e in g.edges:
+                g.edges[e]['weight'] = random.choice(weight_range)
 
-        return self
+            return g
+        
+        return self._next(lambda g: _weighted(g, weight_range))
 
     def cycle(self, length, negative_weight=False):
-        nodes = random.sample(list(self._graph.nodes), length)
+        def _cycle(g, length, negative_weight):
+            nodes = random.sample(list(g.nodes), length)
 
-        for i in range(len(nodes)):
-            j = (i + 1) % len(nodes)
+            for i in range(len(nodes)):
+                j = (i + 1) % len(nodes)
 
-            self._graph.add_edge(nodes[i], nodes[j])
+                g.add_edge(nodes[i], nodes[j])
 
-            if negative_weight:
-                self._graph.edges[nodes[i], nodes[j]]['weight'] = -1
+                if negative_weight:
+                    g.edges[nodes[i], nodes[j]]['weight'] = -1
 
-        return self
+            return g
+        
+        return self._next(lambda g: _cycle(g, length, negative_weight))
 
 
 class RandomGraph:
