@@ -169,6 +169,35 @@ class RandomGraphBuilder:
         
         return self._next(_connected)
     
+    @staticmethod
+    def _spanning_tree(g, return_start=False):
+        if g.number_of_nodes == 0:
+            raise ValueError('Cannot make spanning tree with zero nodes')
+        
+        start = random.choice(sorted(g.nodes))
+        connected = {start}
+
+        disconnected = set(g.nodes)
+        disconnected.remove(start)
+
+        while len(disconnected) > 0:
+            v = random.choice(sorted(disconnected))
+            disconnected.remove(v)
+
+            u = random.choice(sorted(connected))
+
+            g.add_edge(u, v)
+
+            connected.add(v)
+
+        if return_start:
+            return start
+        else:
+            return g
+    
+    def spanning_tree(self):
+        return self._next(RandomGraphBuilder._spanning_tree)
+    
     def weighted(self, weight_range):
         def _weighted(g, weight_range):
             for e in g.edges:
