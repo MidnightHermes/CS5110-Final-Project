@@ -98,7 +98,7 @@ class RandomGraphBuilder:
     def directed(self):
         return self._directed
     
-    def directed(self, will_be_directed):
+    def directed(self, will_be_directed=True):
         new_builder = self.__copy__()
 
         if will_be_directed:
@@ -109,6 +109,9 @@ class RandomGraphBuilder:
             new_builder._directed = False
 
         return new_builder
+    
+    def undirected(self, will_be_undirected=True):
+        return self.directed(not will_be_undirected)
 
     def complete(self):
         def _complete(g):
@@ -219,7 +222,6 @@ class RandomGraphBuilder:
                 g.add_edge(u, v)
 
                 low[node] = y
-
 
         return self._next(_strongly_connected)
     
