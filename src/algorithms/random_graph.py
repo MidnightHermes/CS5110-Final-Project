@@ -25,11 +25,8 @@ def _scour(g, node):
 
     return visited
 
-def _connected_components(g, strongly=False):
-    g = g.copy()
-
-    if not strongly:
-        g = g.to_undirected()
+def _connected_components(g):
+    g = g.copy().to_undirected()
 
     components = []
 
