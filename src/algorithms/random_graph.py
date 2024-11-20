@@ -46,7 +46,7 @@ class RandomGraphBuilder:
 
         self._directed = directed
 
-        self._nodes = 0
+        self._num_nodes = 0
 
         self._transforms = []
 
@@ -55,7 +55,7 @@ class RandomGraphBuilder:
 
         new_builder._init = self._init
         new_builder._directed = self._directed
-        new_builder._nodes = self._nodes
+        new_builder._num_nodes = self._num_nodes
         new_builder._transforms = self._transforms.copy()
 
         return new_builder
@@ -69,7 +69,7 @@ class RandomGraphBuilder:
 
     def nodes(self, n):
         new_builder = self.__copy__()
-        new_builder._nodes = n
+        new_builder._num_nodes = n
 
         return new_builder
 
@@ -87,7 +87,7 @@ class RandomGraphBuilder:
     def build(self):
         g = self._init()
 
-        g.add_nodes_from(range(self._nodes))
+        g.add_nodes_from(range(self._num_nodes))
 
         for f in self._transforms:
             g = f(g)
