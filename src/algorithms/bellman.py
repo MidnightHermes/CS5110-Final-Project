@@ -32,7 +32,12 @@ class NegativeCycleException(Exception):
     @property
     def cycle(self):
         return self._cycle
-
+    
+    @property
+    def edges(self):
+        cyc = self.cycle
+        mod = len(cyc)
+        return [(cyc[i], cyc[(i + 1) % mod]) for i in range(mod)]
 
 def bellman_ford(g, source):
     """
