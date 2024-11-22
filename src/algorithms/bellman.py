@@ -46,7 +46,9 @@ def bellman_ford(g, source):
     n = g.number_of_nodes()
     edges = g.edges
 
-    inf = abs(max(get_edge_attributes(g, 'weight').values())) + 1
+    all_weights = get_edge_attributes(g, 'weight').values()
+    max_weight = max(all_weights)
+    inf = sum(map(abs, all_weights)) + abs(max_weight)
 
     distance = {v: inf for v in g.nodes}
     predecessor = {v: None for v in g.nodes}
@@ -56,7 +58,8 @@ def bellman_ford(g, source):
     for _ in range(n - 1):
         for (u, v) in edges:
             w = edges[u, v]['weight']
-            if distance[u] + w < distance[v]:
+            relax = distance[u] + w
+            if relax <= max_weight and relax < distance[v]:
                 distance[v] = distance[u] + w
                 predecessor[v] = u
 
