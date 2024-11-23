@@ -179,7 +179,10 @@ class RandomGraphBuilder:
         return g
     
     @transform
-    def strongly_connected(g):       
+    def strongly_connected(g, backwards_edges=True):
+        if g.number_of_nodes() == 2:
+            backwards_edges = True
+
         global_time = -1
         start_time = {n: -1 for n in g.nodes}
         time_node_map = dict()
@@ -212,11 +215,16 @@ class RandomGraphBuilder:
                 low[node] = min(low[node], start_time[v])
 
             if low[node] > 0 and low[node] == start_time[node]:
-                x = random.randint(start_time[node], global_time)
-                y = random.randrange(0, start_time[node])
+                backwards = True
+                while backwards:
+                    x = random.randint(start_time[node], global_time)
+                    y = random.randrange(0, start_time[node])
 
-                u = time_node_map[x]
-                v = time_node_map[y]
+                    u = time_node_map[x]
+                    v = time_node_map[y]
+
+                    backwards = not backwards_edges and (v, u) in g.edges
+
 
                 g.add_edge(u, v)
 
