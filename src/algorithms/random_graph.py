@@ -175,24 +175,17 @@ class RandomGraphBuilder:
 
         return g
     
-    def strongly_connected(self):
+    @transform
+    def strongly_connected(g):       
         global_time = -1
-        start_time = dict()
+        start_time = {n: -1 for n in g.nodes}
         time_node_map = dict()
         low = dict()
 
-        def _strongly_connected(g):
-            nonlocal start_time
-            start_time = {n: -1 for n in g.nodes}
-
-            if len(g.edges) > 0:
-                raise ValueError('Cannot construct strongly connected graph with edges already existing')
-            
-            start = RandomGraphBuilder._spanning_tree(g, True)
-
-            _dfs(g, start)
-
-            return g
+        if len(g.edges) > 0:
+            raise ValueError('Cannot construct strongly connected graph with edges already existing')
+        
+        start = RandomGraphBuilder._spanning_tree(g, True)
 
         # Custom DFS for identifying SCCs and connecting them
         def _dfs(g, node):
@@ -226,7 +219,9 @@ class RandomGraphBuilder:
 
                 low[node] = y
 
-        return self._next(_strongly_connected)
+        _dfs(g, start)
+
+        return g
     
     @staticmethod
     def _spanning_tree(g, return_start=False):
