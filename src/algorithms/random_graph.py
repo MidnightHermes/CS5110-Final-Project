@@ -254,15 +254,13 @@ class RandomGraphBuilder:
         else:
             return g
     
-    def weighted(self, weight_range):
-        def _weighted(g, weight_range):
-            for e in g.edges:
-                g.edges[e]['weight'] = random.choice(weight_range)
+    @transform
+    def weighted(g, weight_range):
+        for e in g.edges:
+            g.edges[e]['weight'] = random.choice(weight_range)
 
-            return g
+        return g
         
-        return self._next(lambda g: _weighted(g, weight_range))
-
     def cycle(self, length, negative_weight=False):
         def _cycle(g, length, negative_weight):
             nodes = random.sample(list(g.nodes), length)
