@@ -88,10 +88,12 @@ class RandomGraphBuilder:
         return new_builder
 
     @transform
-    def random_edges(g, p):
+    def random_edges(g, p, backwards_edges=True):
         edges_left = (e for e in _edge_gen(g.nodes, g.is_directed()) if e not in g.edges)
         for e in edges_left:
-            if random.random() < p:
+            erev = tuple(reversed(e))
+            allow_insertion = backwards_edges or erev not in g.edges
+            if allow_insertion and random.random() < p:
                 g.add_edge(*e)
 
         return g
