@@ -46,6 +46,9 @@ class transform:
         self.name = f.__name__
 
     def __get__(self, obj, type=None):
+        if obj is None:
+            return self.f
+
         def newfunc(inst, *args, **kwargs):
             return inst._next(lambda g: self.f(g, *args, **kwargs))
         return functools.partial(newfunc, obj)
