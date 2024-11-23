@@ -1,3 +1,4 @@
+import functools
 import itertools
 import networkx as nx
 import random
@@ -39,6 +40,16 @@ def _connected_components(g):
 
     return components
 
+class transform:
+    def __init__(self, f):
+        self.f = f
+        self.name = f.__name__
+
+    def __get__(self, obj, type=None):
+        def newfunc(inst, *args, **kwargs):
+            return inst._next(lambda g: self.f(g, *args, **kwargs))
+        return functools.partial(newfunc, obj)
+
 
 class RandomGraphBuilder:
     def __init__(self, directed=False):
@@ -73,16 +84,14 @@ class RandomGraphBuilder:
 
         return new_builder
 
-    def random_edges(self, p):
-        def _random_edges(g, p):
-            edges_left = (e for e in _edge_gen(g.nodes, g.is_directed()) if e not in g.edges)
-            for e in edges_left:
-                if random.random() < p:
-                    g.add_edge(*e)
+    @transform
+    def random_edges(g, p):
+        edges_left = (e for e in _edge_gen(g.nodes, g.is_directed()) if e not in g.edges)
+        for e in edges_left:
+            if random.random() < p:
+                g.add_edge(*e)
 
-            return g
-        
-        return self._next(lambda g: _random_edges(g, p))
+        return g
 
     def build(self):
         g = self._init()
@@ -113,13 +122,11 @@ class RandomGraphBuilder:
     def undirected(self, will_be_undirected=True):
         return self.directed(not will_be_undirected)
 
-    def complete(self):
-        def _complete(g):
-            g.add_edges_from(_edge_gen(g.nodes, g.is_directed()))
+    @transform
+    def complete(g):
+        g.add_edges_from(_edge_gen(g.nodes, g.is_directed()))
 
-            return g
-        
-        return self._next(_complete)
+        return g
 
     def clique(self, size, add_new_nodes=False):
         def _clique(g, size, add_new_nodes):
