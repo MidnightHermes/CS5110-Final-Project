@@ -148,34 +148,32 @@ class RandomGraphBuilder:
 
         return g
     
-    def connected(self):
-        def _connected(g):
-            if g.number_of_nodes() == 0:
-                return g
+    @transform
+    def connected(g):
+        if g.number_of_nodes() == 0:
+            return g
 
-            ccs =_connected_components(g)
+        ccs =_connected_components(g)
 
-            if len(ccs) == 1:
-                return g
-            
-            while len(ccs) > 1:
-                c1, c2 = random.sample(ccs, 2)
-
-                ccs.remove(c1)
-                ccs.remove(c2)
-
-                n1 = random.choice(list(c1))
-                n2 = random.choice(list(c2))
-
-                g.add_edge(n1, n2)
-
-                c1 |= c2
-
-                ccs.append(c1)
-
+        if len(ccs) == 1:
             return g
         
-        return self._next(_connected)
+        while len(ccs) > 1:
+            c1, c2 = random.sample(ccs, 2)
+
+            ccs.remove(c1)
+            ccs.remove(c2)
+
+            n1 = random.choice(list(c1))
+            n2 = random.choice(list(c2))
+
+            g.add_edge(n1, n2)
+
+            c1 |= c2
+
+            ccs.append(c1)
+
+        return g
     
     def strongly_connected(self):
         global_time = -1
