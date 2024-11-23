@@ -127,28 +127,26 @@ class RandomGraphBuilder:
         g.add_edges_from(_edge_gen(g.nodes, g.is_directed()))
 
         return g
+    
+    @transform
+    def clique(g, size, add_new_nodes):
+        n = g.number_of_nodes()
 
-    def clique(self, size, add_new_nodes=False):
-        def _clique(g, size, add_new_nodes):
-            n = g.number_of_nodes()
-
-            if not add_new_nodes and size > n:
-                raise ValueError("Tried to build clique larger than the graph")
-            
-            if add_new_nodes:
-                new_nodes = range(n, n + size)
-
-                g.add_nodes_from(new_nodes)
-
-                subset = new_nodes
-            else:
-                subset = random.sample(list(g.nodes), size)
-
-            g.add_edges_from(_edge_gen(subset, g.is_directed()))
-
-            return g
+        if not add_new_nodes and size > n:
+            raise ValueError("Tried to build clique larger than the graph")
         
-        return self._next(lambda g: _clique(g, size, add_new_nodes))
+        if add_new_nodes:
+            new_nodes = range(n, n + size)
+
+            g.add_nodes_from(new_nodes)
+
+            subset = new_nodes
+        else:
+            subset = random.sample(list(g.nodes), size)
+
+        g.add_edges_from(_edge_gen(subset, g.is_directed()))
+
+        return g
     
     def connected(self):
         def _connected(g):
