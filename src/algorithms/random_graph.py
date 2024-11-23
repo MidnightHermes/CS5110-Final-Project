@@ -188,7 +188,7 @@ class RandomGraphBuilder:
         if len(g.edges) > 0:
             raise ValueError('Cannot construct strongly connected graph with edges already existing')
         
-        start = RandomGraphBuilder._spanning_tree(g, True)
+        start = RandomGraphBuilder.spanning_tree(g, True)
 
         # Custom DFS for identifying SCCs and connecting them
         def _dfs(g, node):
@@ -226,8 +226,10 @@ class RandomGraphBuilder:
 
         return g
     
-    @staticmethod
-    def _spanning_tree(g, return_start=False):
+    @transform
+    def spanning_tree(g, return_start=False):
+        # TODO: make return_start a kwarg so it's not user-facing
+
         if g.number_of_nodes == 0:
             raise ValueError('Cannot make spanning tree with zero nodes')
         
@@ -251,9 +253,6 @@ class RandomGraphBuilder:
             return start
         else:
             return g
-    
-    def spanning_tree(self):
-        return self._next(RandomGraphBuilder._spanning_tree)
     
     def weighted(self, weight_range):
         def _weighted(g, weight_range):
