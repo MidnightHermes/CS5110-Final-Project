@@ -260,19 +260,17 @@ class RandomGraphBuilder:
             g.edges[e]['weight'] = random.choice(weight_range)
 
         return g
-        
-    def cycle(self, length, negative_weight=False):
-        def _cycle(g, length, negative_weight):
-            nodes = random.sample(list(g.nodes), length)
+    
+    @transform
+    def cycle(g, length, negative_weight=False):
+        nodes = random.sample(list(g.nodes), length)
 
-            for i in range(len(nodes)):
-                j = (i + 1) % len(nodes)
+        for i in range(len(nodes)):
+            j = (i + 1) % len(nodes)
 
-                g.add_edge(nodes[i], nodes[j])
+            g.add_edge(nodes[i], nodes[j])
 
-                if negative_weight:
-                    g.edges[nodes[i], nodes[j]]['weight'] = -1
+            if negative_weight:
+                g.edges[nodes[i], nodes[j]]['weight'] = -1
 
-            return g
-        
-        return self._next(lambda g: _cycle(g, length, negative_weight))
+        return g
