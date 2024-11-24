@@ -32,5 +32,5 @@ def prims(graph: nx.Graph | nx.DiGraph) -> nx.Graph | nx.DiGraph:
                     weight = data['weight']
                     edge_tuple = (origin, link)
                     heapq.heappush(p_queue, (weight, edge_tuple))
-    
+
     return mst
