@@ -1,3 +1,4 @@
+import functools
 import itertools
 import networkx as nx
 import random
@@ -39,6 +40,19 @@ def _connected_components(g):
 
     return components
 
+class transform:
+    def __init__(self, f):
+        self.f = f
+        self.name = f.__name__
+
+    def __get__(self, obj, type=None):
+        if obj is None:
+            return self.f
+
+        def newfunc(inst, *args, **kwargs):
+            return inst._next(lambda g: self.f(g, *args, **kwargs))
+        return functools.partial(newfunc, obj)
+
 
 class RandomGraphBuilder:
     def __init__(self, directed=False):
@@ -73,16 +87,16 @@ class RandomGraphBuilder:
 
         return new_builder
 
-    def random_edges(self, p):
-        def _random_edges(g, p):
-            edges_left = (e for e in _edge_gen(g.nodes, g.is_directed()) if e not in g.edges)
-            for e in edges_left:
-                if random.random() < p:
-                    g.add_edge(*e)
+    @transform
+    def random_edges(g, p, backwards_edges=True):
+        edges_left = (e for e in _edge_gen(g.nodes, g.is_directed()) if e not in g.edges)
+        for e in edges_left:
+            erev = tuple(reversed(e))
+            allow_insertion = backwards_edges or erev not in g.edges
+            if allow_insertion and random.random() < p:
+                g.add_edge(*e)
 
-            return g
-        
-        return self._next(lambda g: _random_edges(g, p))
+        return g
 
     def build(self):
         g = self._init()
@@ -113,83 +127,73 @@ class RandomGraphBuilder:
     def undirected(self, will_be_undirected=True):
         return self.directed(not will_be_undirected)
 
-    def complete(self):
-        def _complete(g):
-            g.add_edges_from(_edge_gen(g.nodes, g.is_directed()))
+    @transform
+    def complete(g):
+        g.add_edges_from(_edge_gen(g.nodes, g.is_directed()))
 
-            return g
-        
-        return self._next(_complete)
-
-    def clique(self, size, add_new_nodes=False):
-        def _clique(g, size, add_new_nodes):
-            n = g.number_of_nodes()
-
-            if not add_new_nodes and size > n:
-                raise ValueError("Tried to build clique larger than the graph")
-            
-            if add_new_nodes:
-                new_nodes = range(n, n + size)
-
-                g.add_nodes_from(new_nodes)
-
-                subset = new_nodes
-            else:
-                subset = random.sample(list(g.nodes), size)
-
-            g.add_edges_from(_edge_gen(subset, g.is_directed()))
-
-            return g
-        
-        return self._next(lambda g: _clique(g, size, add_new_nodes))
+        return g
     
-    def connected(self):
-        def _connected(g):
-            if g.number_of_nodes() == 0:
-                return g
+    @transform
+    def clique(g, size, add_new_nodes):
+        n = g.number_of_nodes()
 
-            ccs =_connected_components(g)
+        if not add_new_nodes and size > n:
+            raise ValueError("Tried to build clique larger than the graph")
+        
+        if add_new_nodes:
+            new_nodes = range(n, n + size)
 
-            if len(ccs) == 1:
-                return g
-            
-            while len(ccs) > 1:
-                c1, c2 = random.sample(ccs, 2)
+            g.add_nodes_from(new_nodes)
 
-                ccs.remove(c1)
-                ccs.remove(c2)
+            subset = new_nodes
+        else:
+            subset = random.sample(list(g.nodes), size)
 
-                n1 = random.choice(list(c1))
-                n2 = random.choice(list(c2))
+        g.add_edges_from(_edge_gen(subset, g.is_directed()))
 
-                g.add_edge(n1, n2)
+        return g
+    
+    @transform
+    def connected(g):
+        if g.number_of_nodes() == 0:
+            return g
 
-                c1 |= c2
+        ccs =_connected_components(g)
 
-                ccs.append(c1)
-
+        if len(ccs) == 1:
             return g
         
-        return self._next(_connected)
+        while len(ccs) > 1:
+            c1, c2 = random.sample(ccs, 2)
+
+            ccs.remove(c1)
+            ccs.remove(c2)
+
+            n1 = random.choice(list(c1))
+            n2 = random.choice(list(c2))
+
+            g.add_edge(n1, n2)
+
+            c1 |= c2
+
+            ccs.append(c1)
+
+        return g
     
-    def strongly_connected(self):
+    @transform
+    def strongly_connected(g, backwards_edges=True):
+        if g.number_of_nodes() == 2:
+            backwards_edges = True
+
         global_time = -1
-        start_time = dict()
+        start_time = {n: -1 for n in g.nodes}
         time_node_map = dict()
         low = dict()
 
-        def _strongly_connected(g):
-            nonlocal start_time
-            start_time = {n: -1 for n in g.nodes}
-
-            if len(g.edges) > 0:
-                raise ValueError('Cannot construct strongly connected graph with edges already existing')
-            
-            start = RandomGraphBuilder._spanning_tree(g, True)
-
-            _dfs(g, start)
-
-            return g
+        if len(g.edges) > 0:
+            raise ValueError('Cannot construct strongly connected graph with edges already existing')
+        
+        start = RandomGraphBuilder.spanning_tree(g, True)
 
         # Custom DFS for identifying SCCs and connecting them
         def _dfs(g, node):
@@ -213,20 +217,29 @@ class RandomGraphBuilder:
                 low[node] = min(low[node], start_time[v])
 
             if low[node] > 0 and low[node] == start_time[node]:
-                x = random.randint(start_time[node], global_time)
-                y = random.randrange(0, start_time[node])
+                backwards = True
+                while backwards:
+                    x = random.randint(start_time[node], global_time)
+                    y = random.randrange(0, start_time[node])
 
-                u = time_node_map[x]
-                v = time_node_map[y]
+                    u = time_node_map[x]
+                    v = time_node_map[y]
+
+                    backwards = not backwards_edges and (v, u) in g.edges
+
 
                 g.add_edge(u, v)
 
                 low[node] = y
 
-        return self._next(_strongly_connected)
+        _dfs(g, start)
+
+        return g
     
-    @staticmethod
-    def _spanning_tree(g, return_start=False):
+    @transform
+    def spanning_tree(g, return_start=False):
+        # TODO: make return_start a kwarg so it's not user-facing
+
         if g.number_of_nodes == 0:
             raise ValueError('Cannot make spanning tree with zero nodes')
         
@@ -251,30 +264,23 @@ class RandomGraphBuilder:
         else:
             return g
     
-    def spanning_tree(self):
-        return self._next(RandomGraphBuilder._spanning_tree)
+    @transform
+    def weighted(g, weight_range):
+        for e in g.edges:
+            g.edges[e]['weight'] = random.choice(weight_range)
+
+        return g
     
-    def weighted(self, weight_range):
-        def _weighted(g, weight_range):
-            for e in g.edges:
-                g.edges[e]['weight'] = random.choice(weight_range)
+    @transform
+    def cycle(g, length, negative_weight=False):
+        nodes = random.sample(list(g.nodes), length)
 
-            return g
-        
-        return self._next(lambda g: _weighted(g, weight_range))
+        for i in range(len(nodes)):
+            j = (i + 1) % len(nodes)
 
-    def cycle(self, length, negative_weight=False):
-        def _cycle(g, length, negative_weight):
-            nodes = random.sample(list(g.nodes), length)
+            g.add_edge(nodes[i], nodes[j])
 
-            for i in range(len(nodes)):
-                j = (i + 1) % len(nodes)
+            if negative_weight:
+                g.edges[nodes[i], nodes[j]]['weight'] = -1
 
-                g.add_edge(nodes[i], nodes[j])
-
-                if negative_weight:
-                    g.edges[nodes[i], nodes[j]]['weight'] = -1
-
-            return g
-        
-        return self._next(lambda g: _cycle(g, length, negative_weight))
+        return g
