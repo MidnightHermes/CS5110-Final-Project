@@ -24,6 +24,7 @@ class Edge(QGraphicsItemGroup):
     def __init__(self, originVertex, linkVertex, directed=True, weight=None, doOffset=False):
         super().__init__()
 
+        global _weight
         if weight is None:
             weight = _weight
         else:
@@ -151,6 +152,7 @@ class Edge(QGraphicsItemGroup):
     def remove(self, call_backend=True, caller=None):
         group = self.parentItem()
 
+        self.scene().removeItem(self)
         group.removeFromGroup(self, call_backend)
        
         # need caller so we don't mutate a list that

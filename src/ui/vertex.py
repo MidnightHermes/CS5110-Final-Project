@@ -94,6 +94,7 @@ class Vertex(QGraphicsEllipseItem):
     def remove(self):
         group = self.parentItem()
 
+        self.scene().removeItem(self)
         group.removeFromGroup(self)
 
         for edge in self._edges:
