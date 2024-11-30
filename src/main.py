@@ -2,7 +2,7 @@ import sys
 from PyQt6.QtWidgets import QApplication
 
 from ui.window import Window
-from algorithms.random_graph import RandomGraph
+from algorithms.random_graph import RandomGraphBuilder
 
 
 def main():
