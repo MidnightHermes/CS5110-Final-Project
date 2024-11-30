@@ -35,12 +35,12 @@ class Window(QWidget):
         if graph is not None:
             self.directed_toggle.setChecked(isinstance(graph, nx.DiGraph))
 
-        view = QGraphicsView(self.scene)
-        view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.view = QGraphicsView(self.scene)
+        self.view.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         hbox = QHBoxLayout(self)
         hbox.addLayout(vbox)
-        hbox.addWidget(view)
+        hbox.addWidget(self.view)
 
         self.setLayout(hbox)
     
