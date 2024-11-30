@@ -1,5 +1,6 @@
 from typing import Optional, Union
 import networkx as nx
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPainter, QDoubleValidator
 from PyQt6.QtWidgets import (
     QButtonGroup,
@@ -37,6 +38,8 @@ class Window(QWidget):
 
         self.view = QGraphicsView(self.scene)
         self.view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         hbox = QHBoxLayout(self)
         hbox.addLayout(vbox)
