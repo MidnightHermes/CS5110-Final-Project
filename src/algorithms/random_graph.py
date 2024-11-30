@@ -217,6 +217,8 @@ class RandomGraphBuilder:
                 low[node] = min(low[node], start_time[v])
 
             if low[node] > 0 and low[node] == start_time[node]:
+                # TODO: Fix possible infinite loop. Probably by pruning away pairs with connections already
+                #       instead of picking randomly until the conditions are satisfied.
                 backwards = True
                 while backwards:
                     x = random.randint(start_time[node], global_time)
