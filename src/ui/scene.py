@@ -1,6 +1,7 @@
 from typing import Optional
 import networkx as nx
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QTransform
 from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsScene,
@@ -83,3 +84,13 @@ class Scene(QGraphicsScene):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key.Key_P:
             print(self._graphScene.graph.adj)
+
+    def wheelEvent(self, e):
+        delta = e.delta() / (360 * 8)
+
+        view = self.views()[0]
+
+        scale = 1 + delta
+
+        view.scale(scale, scale)
+        view.translate(10, 10)
