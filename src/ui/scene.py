@@ -55,6 +55,9 @@ class Scene(QGraphicsScene):
             return max(underMouse, key=lambda i: i.stamp)
         except ValueError:
             return None
+        
+    def getVertexUnderMouse(self):
+        return self.getItemUnderMouse(Vertex, self._graphScene.vertices)
     
     # Calling this removeItemFromScene because removeItem is reserved by PyQt
     def removeItemFromScene(self, cls, e):
