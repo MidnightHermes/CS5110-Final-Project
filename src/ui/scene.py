@@ -23,6 +23,9 @@ class Scene(QGraphicsScene):
         self._graphScene = GraphScene(graph)
         self.addItem(self._graphScene)
 
+        self._dragging = False # True if scene is in a scene dragging state
+        self._dragMousePos = None
+
     def toggleSelectMode(self, b):
         self._isSelectMode = b
 
@@ -56,6 +59,9 @@ class Scene(QGraphicsScene):
             return max(underMouse, key=lambda i: i.stamp)
         except ValueError:
             return None
+        
+    def getVertexUnderMouse(self):
+        return self.getItemUnderMouse(Vertex, self._graphScene.vertices)
     
     # Calling this removeItemFromScene because removeItem is reserved by PyQt
     def removeItemFromScene(self, cls, e):
@@ -69,7 +75,14 @@ class Scene(QGraphicsScene):
 
     def mousePressEvent(self, e):
         if self._isSelectMode:
-            super().mousePressEvent(e)  # propogate in order for select and drag to work
+            if e.button() == Qt.MouseButton.LeftButton and self.getVertexUnderMouse() is None:
+                if not e.modifiers() & Qt.KeyboardModifier.ControlModifier:
+                    self.clearSelection() # Un-select selected vertices if CTRL isn't being held down
+
+                self._dragging = True
+                self._dragMousePos = e.scenePos() # Store initial mouse position
+            else:
+                super().mousePressEvent(e)  # propogate in order for select and drag to work
         elif self._isVertexMode:
             if e.button() == Qt.MouseButton.LeftButton:
                 self._graphScene.addVertex(e)
@@ -80,6 +93,24 @@ class Scene(QGraphicsScene):
                 self._graphScene.addEdge(e)
             if e.button() == Qt.MouseButton.RightButton:
                 self.removeItemFromScene(Edge, e)
+
+    def mouseReleaseEvent(self, e):
+        if self._dragging and e.button() == Qt.MouseButton.LeftButton:
+            self._dragging = False
+        else:
+            super().mouseReleaseEvent(e)
+
+    def mouseMoveEvent(self, e):
+        if self._dragging:
+            # How much mouse has moved since last time
+            d = e.scenePos() - self._dragMousePos
+
+            # Current position will be the next old position
+            self._dragMousePos = e.scenePos()
+
+            self._graphScene.translate(d.x(), d.y())
+        else:
+            super().mouseMoveEvent(e)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key.Key_P:
