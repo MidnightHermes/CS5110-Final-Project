@@ -284,3 +284,14 @@ class RandomGraphBuilder:
                 g.edges[nodes[i], nodes[j]]['weight'] = -1
 
         return g
+    
+    @transform
+    def shuffle_nodes(g):
+        domain = list(g.nodes)
+
+        codomain = list(g.nodes)
+        random.shuffle(codomain)
+
+        mapping = {x: y for (x, y) in zip(domain, codomain)}
+
+        return nx.relabel_nodes(g, mapping)
