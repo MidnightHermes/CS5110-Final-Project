@@ -1,5 +1,6 @@
 from typing import Optional, Union
 import networkx as nx
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPainter, QDoubleValidator
 from PyQt6.QtWidgets import (
     QButtonGroup,
@@ -35,12 +36,14 @@ class Window(QWidget):
         if graph is not None:
             self.directed_toggle.setChecked(isinstance(graph, nx.DiGraph))
 
-        view = QGraphicsView(self.scene)
-        view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.view = QGraphicsView(self.scene)
+        self.view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         hbox = QHBoxLayout(self)
         hbox.addLayout(vbox)
-        hbox.addWidget(view)
+        hbox.addWidget(self.view)
 
         self.setLayout(hbox)
     

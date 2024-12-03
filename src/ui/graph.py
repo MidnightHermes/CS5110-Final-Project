@@ -1,6 +1,7 @@
 from typing import Optional
 import networkx as nx
 from PyQt6.QtCore import QRectF
+from PyQt6.QtGui import QTransform
 from PyQt6.QtWidgets import QGraphicsItem
 
 from ui.edge import Edge
@@ -42,6 +43,13 @@ class ItemGroup(QGraphicsItem):
                 rect.setRight(right)
 
         return rect
+    
+    def translate(self, dx, dy):
+        transform = QTransform()
+
+        transform.translate(dx, dy)
+
+        self.setTransform(transform, combine=True)
 
     def paint(self, painter, option, widget):
         pass
