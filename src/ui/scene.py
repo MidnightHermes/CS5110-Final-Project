@@ -124,4 +124,3 @@ class Scene(QGraphicsScene):
         scale = 1 + delta
 
         view.scale(scale, scale)
-        view.translate(10, 10)
