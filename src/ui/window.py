@@ -168,10 +168,25 @@ class BuildOptionListView(QListView):
     def dropEvent(self, event):
         super().dropEvent(event)
 
+        print()
+
         if event.dropAction() == Qt.DropAction.CopyAction:
+            dropPos = event.position().toPoint()
+
+            errUp = QPoint(dropPos.x(), dropPos.y() - 10)
+            errDown = QPoint(dropPos.x(), dropPos.y() + 10)
+
+            indexOfDrop = self.indexAt(dropPos)
+            indexErrDown = self.indexAt(errDown)
+
+            if indexOfDrop != indexErrDown:
+                indexOfDrop = indexErrDown
+
             last = self.getLastIndex()
 
-            name = self.model().data(last)
+            correctIndex = indexOfDrop if indexOfDrop.row() > -1 else last
+            print(correctIndex.row())
+            name = self.model().data(correctIndex)
 
             if self._onCopy is not None:
                 val = self._onCopy(name)
