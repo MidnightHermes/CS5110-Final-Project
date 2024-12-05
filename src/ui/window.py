@@ -151,7 +151,10 @@ class BuildOptionListView(QListView):
             super().mouseDoubleClickEvent(event)
 
 class GraphGenPopup(QWidget):
-    """Based on https://stackoverflow.com/questions/67029993/pyqt-creating-a-popup-in-the-window"""
+    """
+    Based on https://stackoverflow.com/questions/67029993/pyqt-creating-a-popup-in-the-window
+    and https://www.youtube.com/watch?v=TlLxyuQKbv4
+    """
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -165,9 +168,12 @@ class GraphGenPopup(QWidget):
                 border-radius: 4px;
                 background: rgb(64, 64, 64);
             }
+                           
+            QWidget#container > QLabel {
+                color: white;
+            }
 
             QLabel#title {
-                color: white;
                 font-size: 20pt;
             }
 
@@ -235,6 +241,22 @@ class GraphGenPopup(QWidget):
                              border: 1px solid #27AE60; }
             QListView::item::hover { background-color: #27AE60 }
         ''')
+
+        vLayout.addWidget(QLabel('Number of Nodes:'))
+        self.num_nodes_input = QLineEdit()
+        num_nodes_validator = QIntValidator()
+        num_nodes_validator.setRange(MIN_NUM_NODES, MAX_NUM_NODES)
+        self.num_nodes_input.setValidator(num_nodes_validator)
+        vLayout.addWidget(self.num_nodes_input)
+        self.num_nodes_input.textChanged.connect(self.checkInput)
+        self.num_nodes_input.returnPressed.connect(self.accept)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        vLayout.addWidget(buttonBox)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        self.okButton = buttonBox.button(buttonBox.StandardButton.Ok)
+        self.okButton.setEnabled(False)
 
         # parent.installEventFilter(self)
         self.loop = QEventLoop(self)
