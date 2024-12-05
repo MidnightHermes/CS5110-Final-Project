@@ -1,6 +1,6 @@
 from typing import Optional, Union
 import networkx as nx
-from PyQt6.QtCore import Qt, QEventLoop, QPoint, QStringListModel
+from PyQt6.QtCore import Qt, QEventLoop, QPersistentModelIndex, QPoint, QStringListModel
 from PyQt6.QtGui import QPainter, QDoubleValidator, QIntValidator
 from PyQt6.QtWidgets import (
     QButtonGroup,
@@ -138,6 +138,9 @@ class BuildOptionListView(QListView):
         super().__init__(*args, **kwargs)
 
         self._canDelete = False
+        self._onDrop = None
+        self._test = 0
+        self._map = {}
 
     def allowDeletion(self, on):
         self._canDelete = on
@@ -145,10 +148,34 @@ class BuildOptionListView(QListView):
     def mouseDoubleClickEvent(self, event):
         if self._canDelete and event.button() == Qt.MouseButton.LeftButton:
             index = self.currentIndex()
+
+            persistent = QPersistentModelIndex(index)
+
             index.row()
             self.model().removeRow(index.row())
         else:
             super().mouseDoubleClickEvent(event)
+
+    def getLastIndex(self):
+        return self.model().index(self.model().rowCount() - 1, 0)
+        
+    def onDrop(self, f):
+        self._onDrop = f
+
+    def dropEvent(self, event):
+        if self._onDrop:
+            self._onDrop()
+
+        super().dropEvent(event)
+
+        if event.dropAction() == Qt.DropAction.CopyAction:
+            last = self.getLastIndex()
+            persistent = QPersistentModelIndex(last)
+            self._map[persistent] = self._test
+            self._test += 1
+
+
+        
 
 class GraphGenPopup(QWidget):
     """
@@ -224,7 +251,6 @@ class GraphGenPopup(QWidget):
         self.hLayout.addWidget(self.buildList)
 
         optionModel = BuilderOptionListModel(["Clique", "Connected", "Weight", "Dog", "Cat"])
-        print(optionModel.flags(optionModel.index(0, 0)))
         self.optionList.setModel(optionModel)
         self.buildList.setModel(BuilderOptionListModel())
 
@@ -317,6 +343,72 @@ class GraphGenPopup(QWidget):
 
     def close(self):
         self.loop.quit()
+
+    def showEvent(self, event):
+        self.setGeometry(self.parent().rect())
+
+    def resizeEvent(self, event):
+        r = self.closeButton.rect()
+        r.moveTopRight(self.container.rect().topRight() + QPoint(-5, 5))
+        self.closeButton.setGeometry(r)
+
+    def eventFilter(self, source, event):
+        if event.type() == event.Type.Resize:
+            self.setGeometry(source.rect())
+        return super().eventFilter(source, event)
+
+    def exec_(self):
+        self.show()
+        self.raise_()
+        res = self.loop.exec()
+        self.hide()
+        return res
+    
+import enum
+
+class BuilderOptionPopup(QWidget):
+    class BuilderArgument(enum.Enum):
+        INT = enum.auto()
+        BOOL = enum.auto()
+        RANGE = enum.auto()
+
+    def __init__(self, parent, title, paramMap):
+        super().__init__(parent)
+
+        self.setStyleSheet('''
+            QWidget#container {
+                border: 2px solid darkGray;
+                border-radius: 4px;
+            }
+        ''')
+
+        self.container = QWidget(autoFillBackground=True, objectName='container')
+
+        mainLayout = QVBoxLayout(self)
+        mainLayout.addWidget(self.container)
+
+        buttonSize = self.fontMetrics().height()
+
+        vLayout = QVBoxLayout(self.container)
+        vLayout.setContentsMargins(0, 0, buttonSize, buttonSize)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        vLayout.addWidget(buttonBox)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        self.okButton = buttonBox.button(buttonBox.StandardButton.Ok)
+        self.okButton.setEnabled(False)
+
+        self.loop = QEventLoop(self)
+
+    def accept(self):
+        if self.okButton.isEnabled():
+            # TODO: functionality
+
+            self.loop.exit(True)
+
+    def reject(self):
+        self.loop.exit(False)
 
     def showEvent(self, event):
         self.setGeometry(self.parent().rect())
