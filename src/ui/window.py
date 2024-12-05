@@ -174,9 +174,6 @@ class BuildOptionListView(QListView):
             self._map[persistent] = self._test
             self._test += 1
 
-
-        
-
 class GraphGenPopup(QWidget):
     """
     Based on https://stackoverflow.com/questions/67029993/pyqt-creating-a-popup-in-the-window
