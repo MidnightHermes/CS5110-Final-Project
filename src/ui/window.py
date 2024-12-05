@@ -158,6 +158,7 @@ class GraphGenPopup(QWidget):
         self.mainLayout = QVBoxLayout(self)
         self.mainLayout.addWidget(self.container, alignment=Qt.AlignmentFlag.AlignCenter)
         self.container.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+        self.container.setFixedHeight(parent.height())
 
         buttonSize = self.fontMetrics().height()
         self.closeButton = QPushButton('x', self.container, objectName='close')
@@ -170,7 +171,7 @@ class GraphGenPopup(QWidget):
         title = QLabel('Select a graph generation method', objectName='title', alignment=Qt.AlignmentFlag.AlignCenter)
         vLayout.addWidget(title)
 
-        self.hLayout = QHBoxLayout(self.container)
+        self.hLayout = QHBoxLayout()
         vLayout.addLayout(self.hLayout)
 
         self.optionList = QListView(self)
