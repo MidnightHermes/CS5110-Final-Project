@@ -122,6 +122,34 @@ class Window(QWidget):
         self.mode_group.addButton(self.vertex_mode)
         self.mode_group.addButton(self.edge_mode)
 
+class BuilderOptionListModel(QStringListModel):
+    def __init__(self, *args, **kwargs):
+        super(QStringListModel, self).__init__(*args, **kwargs)
+
+    def flags(self, *args):
+        return (Qt.ItemFlag.ItemIsSelectable
+                | Qt.ItemFlag.ItemIsDragEnabled
+                | Qt.ItemFlag.ItemIsDropEnabled
+                | Qt.ItemFlag.ItemIsEnabled
+                | Qt.ItemFlag.ItemNeverHasChildren)
+    
+class BuildOptionListView(QListView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._canDelete = False
+
+    def allowDeletion(self, on):
+        self._canDelete = on
+
+    def mouseDoubleClickEvent(self, event):
+        if self._canDelete and event.button() == Qt.MouseButton.LeftButton:
+            index = self.currentIndex()
+            index.row()
+            self.model().removeRow(index.row())
+        else:
+            super().mouseDoubleClickEvent(event)
+
 class GraphGenPopup(QWidget):
     """Based on https://stackoverflow.com/questions/67029993/pyqt-creating-a-popup-in-the-window"""
     def __init__(self, parent):
@@ -178,28 +206,31 @@ class GraphGenPopup(QWidget):
         self.optionList.setDragEnabled(True)
         self.optionList.setAcceptDrops(False)
         self.optionList.setDropIndicatorShown(True)
-        self.optionList.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.optionList.setDefaultDropAction(Qt.DropAction.CopyAction)
         self.hLayout.addWidget(self.optionList)
 
-        self.buildList = QListView(self)
+        self.buildList = BuildOptionListView(self)
         self.buildList.setDragEnabled(True)
         self.buildList.setAcceptDrops(True)
         self.buildList.setDefaultDropAction(Qt.DropAction.MoveAction)
         self.buildList.setDropIndicatorShown(True)
+        self.buildList.allowDeletion(True)
         self.hLayout.addWidget(self.buildList)
 
-        self.optionList.setModel(QStringListModel(["Clique", "Connected", "Weight", "Dog", "Cat"]))
-        self.buildList.setModel(QStringListModel())
+        optionModel = BuilderOptionListModel(["Clique", "Connected", "Weight", "Dog", "Cat"])
+        print(optionModel.flags(optionModel.index(0, 0)))
+        self.optionList.setModel(optionModel)
+        self.buildList.setModel(BuilderOptionListModel())
 
         self.optionList.setStyleSheet('''
-            QListView { font-size: 20pt; font-weight: bold; }
-            QListView::item { background-color: #E74C3C; padding: 10%;
-                             border: 1px solid #C0392B; }
-            QListView::item::hover { background-color: #C0392B }
+            QListView { font-size: 10pt; font-weight: bold; }
+            QListView::item { background-color: #E0E0E0; padding: 10%;
+                             border: 1px solid #000000; }
+            QListView::item::hover { background-color: #C0C0C0 }
         ''')
 
         self.buildList.setStyleSheet('''
-            QListView { font-size: 20pt; font-weight: bold; }
+            QListView { font-size: 10pt; font-weight: bold; }
             QListView::item { background-color: #2ECC71; padding: 10%;
                              border: 1px solid #27AE60; }
             QListView::item::hover { background-color: #27AE60 }
