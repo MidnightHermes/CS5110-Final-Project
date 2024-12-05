@@ -4,7 +4,9 @@ from PyQt6.QtCore import Qt, QEventLoop, QPersistentModelIndex, QPoint, QStringL
 from PyQt6.QtGui import QPainter, QDoubleValidator, QIntValidator
 from PyQt6.QtWidgets import (
     QButtonGroup,
+    QDoubleSpinBox,
     QGraphicsView,
+    QGroupBox,
     QHBoxLayout,
     QRadioButton,
     QVBoxLayout,
@@ -14,6 +16,7 @@ from PyQt6.QtWidgets import (
     QCheckBox,
     QPushButton,
     QSizePolicy,
+    QSpinBox,
     QLabel,
     QDialogButtonBox,
 )
@@ -138,8 +141,7 @@ class BuildOptionListView(QListView):
         super().__init__(*args, **kwargs)
 
         self._canDelete = False
-        self._onDrop = None
-        self._test = 0
+        self._onCopy = None
         self._map = {}
 
     def allowDeletion(self, on):
@@ -150,6 +152,7 @@ class BuildOptionListView(QListView):
             index = self.currentIndex()
 
             persistent = QPersistentModelIndex(index)
+            del self._map[persistent]
 
             index.row()
             self.model().removeRow(index.row())
@@ -159,20 +162,23 @@ class BuildOptionListView(QListView):
     def getLastIndex(self):
         return self.model().index(self.model().rowCount() - 1, 0)
         
-    def onDrop(self, f):
-        self._onDrop = f
+    def onCopy(self, f):
+        self._onCopy = f
 
     def dropEvent(self, event):
-        if self._onDrop:
-            self._onDrop()
-
         super().dropEvent(event)
 
         if event.dropAction() == Qt.DropAction.CopyAction:
             last = self.getLastIndex()
-            persistent = QPersistentModelIndex(last)
-            self._map[persistent] = self._test
-            self._test += 1
+
+            name = self.model().data(last)
+
+            if self._onCopy is not None:
+                val = self._onCopy(name)
+
+                persistent = QPersistentModelIndex(last)
+                
+                self._map[persistent] = val
 
 class GraphGenPopup(QWidget):
     """
@@ -232,38 +238,7 @@ class GraphGenPopup(QWidget):
         self.hLayout = QHBoxLayout()
         vLayout.addLayout(self.hLayout)
 
-        self.optionList = QListView(self)
-        self.optionList.setDragEnabled(True)
-        self.optionList.setAcceptDrops(False)
-        self.optionList.setDropIndicatorShown(True)
-        self.optionList.setDefaultDropAction(Qt.DropAction.CopyAction)
-        self.hLayout.addWidget(self.optionList)
-
-        self.buildList = BuildOptionListView(self)
-        self.buildList.setDragEnabled(True)
-        self.buildList.setAcceptDrops(True)
-        self.buildList.setDefaultDropAction(Qt.DropAction.MoveAction)
-        self.buildList.setDropIndicatorShown(True)
-        self.buildList.allowDeletion(True)
-        self.hLayout.addWidget(self.buildList)
-
-        optionModel = BuilderOptionListModel(["Clique", "Connected", "Weight", "Dog", "Cat"])
-        self.optionList.setModel(optionModel)
-        self.buildList.setModel(BuilderOptionListModel())
-
-        self.optionList.setStyleSheet('''
-            QListView { font-size: 10pt; font-weight: bold; }
-            QListView::item { background-color: #E0E0E0; padding: 10%;
-                             border: 1px solid #000000; }
-            QListView::item::hover { background-color: #C0C0C0 }
-        ''')
-
-        self.buildList.setStyleSheet('''
-            QListView { font-size: 10pt; font-weight: bold; }
-            QListView::item { background-color: #2ECC71; padding: 10%;
-                             border: 1px solid #27AE60; }
-            QListView::item::hover { background-color: #27AE60 }
-        ''')
+        self.buildLists()
 
         vLayout.addWidget(QLabel('Number of Nodes:'))
         self.num_nodes_input = QLineEdit()
@@ -283,6 +258,104 @@ class GraphGenPopup(QWidget):
 
         # parent.installEventFilter(self)
         self.loop = QEventLoop(self)
+
+    @property
+    def methods(self):
+        from algorithms.random_graph import RandomGraphBuilder
+
+        
+
+        clique = {RandomGraphBuilder.clique:
+                    {'name': 'Clique',
+                     'args': [('size', BuilderOptionPopup.BuilderArgument.INT),
+                              ('add_new_nodes', BuilderOptionPopup.BuilderArgument.BOOL)]}}
+
+        random_edges = {RandomGraphBuilder.random_edges:
+                            {'name': 'Random Edges',
+                             'args': [('p', BuilderOptionPopup.BuilderArgument.REAL),
+                                      ('backwards_edges', BuilderOptionPopup.BuilderArgument.BOOL)]}}
+
+        complete = {RandomGraphBuilder.complete:
+                        {'name': 'Complete',
+                         'args': []}}
+        
+        connected = {RandomGraphBuilder.connected:
+                        {'name': 'Connected',
+                         'args': []}}
+        
+        strongly_connected = {RandomGraphBuilder.strongly_connected:
+                                {'name': 'Strongly Connected',
+                                 'args': [('backwards_edges', BuilderOptionPopup.BuilderArgument.BOOL)]}}
+    
+        spanning_tree = {RandomGraphBuilder.spanning_tree:
+                            {'name': 'Spanning Tree',
+                             'args': []}}
+        
+        weighted = {RandomGraphBuilder.weighted:
+                        {'name': 'Weighted',
+                         'args': [('weight_range', BuilderOptionPopup.BuilderArgument.RANGE)]}}
+        
+        cycle = {RandomGraphBuilder.cycle:
+                    {'name': 'Cycle',
+                     'args': [('length', BuilderOptionPopup.BuilderArgument.INT),
+                              ('negative_weight', BuilderOptionPopup.BuilderArgument.BOOL)]}}
+
+        return (clique
+                | random_edges
+                | complete
+                | connected
+                | strongly_connected
+                | spanning_tree
+                | weighted
+                | cycle)
+    
+    def buildLists(self):
+        self.optionList = QListView(self)
+        self.optionList.setDragEnabled(True)
+        self.optionList.setAcceptDrops(False)
+        self.optionList.setDropIndicatorShown(True)
+        self.optionList.setDefaultDropAction(Qt.DropAction.CopyAction)
+        self.hLayout.addWidget(self.optionList)
+
+        self.buildList = BuildOptionListView(self)
+        self.buildList.setDragEnabled(True)
+        self.buildList.setAcceptDrops(True)
+        self.buildList.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.buildList.setDropIndicatorShown(True)
+        self.buildList.allowDeletion(True)
+
+        self.hLayout.addWidget(self.buildList)
+
+        methods = self.methods
+        name_map = {i['name']: (m, i) for (m, i) in methods.items()}
+
+        def popupCallback(name):
+            method, info = name_map[name]
+
+            pop = BuilderOptionPopup(self, info)
+            pop.exec_()
+
+            return 1
+
+        self.buildList.onCopy(popupCallback)
+        optionModel = BuilderOptionListModel(name_map.keys())
+        self.optionList.setModel(optionModel)
+        self.buildList.setModel(BuilderOptionListModel())
+
+        self.optionList.setStyleSheet('''
+            QListView { font-size: 10pt; font-weight: bold; }
+            QListView::item { background-color: #E0E0E0; padding: 10%;
+                             border: 1px solid #000000; }
+            QListView::item::hover { background-color: #C0C0C0 }
+        ''')
+
+        self.buildList.setStyleSheet('''
+            QListView { font-size: 10pt; font-weight: bold; }
+            QListView::item { background-color: #2ECC71; padding: 10%;
+                             border: 1px solid #27AE60; }
+            QListView::item::hover { background-color: #27AE60 }
+        ''')        
+
     
     def checkInput(self):
         text = self.num_nodes_input.text()
@@ -368,41 +441,98 @@ class BuilderOptionPopup(QWidget):
         INT = enum.auto()
         BOOL = enum.auto()
         RANGE = enum.auto()
+        REAL = enum.auto()
 
-    def __init__(self, parent, title, paramMap):
+    def __init__(self, parent, fInfo):
         super().__init__(parent)
 
         self.setStyleSheet('''
             QWidget#container {
                 border: 2px solid darkGray;
                 border-radius: 4px;
+                padding: 10%;
+            }
+            
+            QLabel#title {
+                font-size: 20pt;
+            }
+                           
+            QGroupBox {
+                color: white;
             }
         ''')
+
+        self._fInfo = fInfo
+
+        name = fInfo['name']
 
         self.container = QWidget(autoFillBackground=True, objectName='container')
 
         mainLayout = QVBoxLayout(self)
-        mainLayout.addWidget(self.container)
+        mainLayout.addWidget(self.container, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.container.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 
         buttonSize = self.fontMetrics().height()
 
         vLayout = QVBoxLayout(self.container)
         vLayout.setContentsMargins(0, 0, buttonSize, buttonSize)
 
+        title = QLabel(name, objectName='title', alignment=Qt.AlignmentFlag.AlignCenter)
+        vLayout.addWidget(title)
+
+        vLayout.addLayout(self.generate(fInfo['args']))
+
         buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         vLayout.addWidget(buttonBox)
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
         self.okButton = buttonBox.button(buttonBox.StandardButton.Ok)
-        self.okButton.setEnabled(False)
 
         self.loop = QEventLoop(self)
 
-    def accept(self):
-        if self.okButton.isEnabled():
-            # TODO: functionality
+    def generate(self, map):
+        layout = QVBoxLayout()
 
-            self.loop.exit(True)
+        self
+
+        for name, t in map:
+            parent = QGroupBox(name)
+            littleLayout = QVBoxLayout()
+
+            match t:
+                case self.BuilderArgument.INT:
+                    widg = QSpinBox()
+                case self.BuilderArgument.REAL:
+                    widg = QDoubleSpinBox()
+                case self.BuilderArgument.BOOL:
+                    widg = QCheckBox()
+                case self.BuilderArgument.RANGE:
+                    widg = QGroupBox()
+                    hLayout = QHBoxLayout()
+
+                    low = QSpinBox()
+                    low.setObjectName(name + 'low')
+                    hLayout.addWidget(low)
+
+                    high = QSpinBox()
+                    high.setObjectName(name + 'high')
+                    hLayout.addWidget(high)
+
+                    widg.setLayout(hLayout)
+
+            widg.setObjectName(name)
+            littleLayout.addWidget(widg)
+                
+
+            parent.setLayout(littleLayout)
+            layout.addWidget(parent)
+
+        return layout
+
+    def accept(self):
+        # TODO: functionality
+
+        self.loop.exit(True)
 
     def reject(self):
         self.loop.exit(False)
@@ -410,17 +540,15 @@ class BuilderOptionPopup(QWidget):
     def showEvent(self, event):
         self.setGeometry(self.parent().rect())
 
-    def resizeEvent(self, event):
-        r = self.closeButton.rect()
-        r.moveTopRight(self.container.rect().topRight() + QPoint(-5, 5))
-        self.closeButton.setGeometry(r)
-
     def eventFilter(self, source, event):
         if event.type() == event.Type.Resize:
             self.setGeometry(source.rect())
         return super().eventFilter(source, event)
 
     def exec_(self):
+        if len(self._fInfo['args']) == 0:
+            return []
+
         self.show()
         self.raise_()
         res = self.loop.exec()
