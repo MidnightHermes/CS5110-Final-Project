@@ -1,6 +1,6 @@
 from typing import Optional, Union
 import networkx as nx
-from PyQt6.QtCore import Qt, QEventLoop, QPoint
+from PyQt6.QtCore import Qt, QEventLoop, QPoint, QStringListModel
 from PyQt6.QtGui import QPainter, QDoubleValidator, QIntValidator
 from PyQt6.QtWidgets import (
     QButtonGroup,
@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QLineEdit,
+    QListView,
     QCheckBox,
     QPushButton,
     QSizePolicy,
@@ -121,30 +122,22 @@ class Window(QWidget):
         self.mode_group.addButton(self.vertex_mode)
         self.mode_group.addButton(self.edge_mode)
 
-
 class GraphGenPopup(QWidget):
     """Based on https://stackoverflow.com/questions/67029993/pyqt-creating-a-popup-in-the-window"""
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
-        self.setAutoFillBackground(True)
         self.setStyleSheet('''
             Popup {
                 background: rgba(64, 64, 64, 64);
             }
+
             QWidget#container {
                 border: 2px solid darkGray;
                 border-radius: 4px;
                 background: rgb(64, 64, 64);
             }
-            QWidget#container > QLabel {
-                color: white;
-            }
-            QLabel#title {
-                font-size: 20pt;
-            }
+
             QPushButton#close {
                 color: white;
                 font-weight: bold;
@@ -153,53 +146,61 @@ class GraphGenPopup(QWidget):
             }
         ''')
 
-        fullLayout = QVBoxLayout(self)
-
         self.container = QWidget(autoFillBackground=True, objectName='container')
-        fullLayout.addWidget(self.container, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+
+        self.mainLayout = QVBoxLayout(self)
+        self.mainLayout.addWidget(self.container, alignment=Qt.AlignmentFlag.AlignCenter)
         self.container.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+
+        self.setLayout(self.mainLayout)
 
         buttonSize = self.fontMetrics().height()
         self.closeButton = QPushButton('x', self.container, objectName='close')
         self.closeButton.setFixedSize(buttonSize, buttonSize)
         self.closeButton.clicked.connect(self.reject)
 
-        layout = QVBoxLayout(self.container)
-        layout.setContentsMargins(buttonSize * 2, buttonSize, buttonSize * 2, buttonSize)
-
         title = QLabel('Select a graph generation method', objectName='title', alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(title)
+        self.mainLayout.addWidget(title)
 
-        from algorithms.random_graph import RandomGraphBuilder
-        # Dynamically get public methods from RandomGraphBuilder in case we add more later
-        self.graph_methods = [method for method in dir(RandomGraphBuilder) \
-                              if callable(getattr(RandomGraphBuilder, method)) \
-                              and not method.startswith('_') \
-                              and not method == 'build' and not method == 'nodes' \
-                              and not method == 'directed' and not method == 'undirected' \
-                             ]
-        for method in self.graph_methods:
-            method_name = ' '.join(word.capitalize() for word in method.split('_'))
-            button = QCheckBox(method_name, self)
-            button.clicked.connect(lambda _, m=method: self.selectMethod(m))
-            layout.addWidget(button)
-        layout.addWidget(QLabel('Number of Nodes:'))
-        self.num_nodes_input = QLineEdit()
-        num_nodes_validator = QIntValidator()
-        num_nodes_validator.setRange(MIN_NUM_NODES, MAX_NUM_NODES)
-        self.num_nodes_input.setValidator(num_nodes_validator)
-        layout.addWidget(self.num_nodes_input)
-        self.num_nodes_input.textChanged.connect(self.checkInput)
-        self.num_nodes_input.returnPressed.connect(self.accept)
+        self.hLayout = QHBoxLayout(self.container)
+        self.hLayout.setContentsMargins(buttonSize * 2, buttonSize, buttonSize * 2, buttonSize)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
-        layout.addWidget(buttonBox)
-        buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
-        self.okButton = buttonBox.button(buttonBox.StandardButton.Ok)
-        self.okButton.setEnabled(False)
+        self.optionList = QListView(self)
+        self.optionList.setDragEnabled(True)
+        self.optionList.setAcceptDrops(False)
+        self.optionList.setDropIndicatorShown(True)
+        self.optionList.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.hLayout.addWidget(self.optionList)
 
-        parent.installEventFilter(self)
+        self.buildList = QListView(self)
+        self.buildList.setDragEnabled(True)
+        self.buildList.setAcceptDrops(True)
+        self.buildList.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.buildList.setDropIndicatorShown(True)
+        self.hLayout.addWidget(self.buildList)
+
+        self.optionList.setModel(QStringListModel())
+        self.buildList.setModel(QStringListModel())
+
+        self.optionList.setStyleSheet('''
+            QListView { font-size: 20pt; font-weight: bold; }
+            QListView::item { backbround-color: #E74C3C; padding: 10%;
+                             border: 1px solid #C0392B; }
+            QListView::item::hover { background-color: #C0392B }
+        ''')
+
+        self.buildList.setStyleSheet('''
+            QListView { font-size: 20pt; font-weight: bold; }
+            QListView::item { backbround-color: #2ECC71; padding: 10%;
+                             border: 1px solid #27AE60; }
+            QListView::item::hover { background-color: #27AE60 }
+        ''')
+
+
+
+        # parent.installEventFilter(self)
         self.loop = QEventLoop(self)
     
     def checkInput(self):
