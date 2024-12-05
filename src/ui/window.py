@@ -173,8 +173,6 @@ class BuildOptionListView(QListView):
     def dropEvent(self, event):
         super().dropEvent(event)
 
-        print()
-
         if event.dropAction() == Qt.DropAction.CopyAction:
             dropPos = event.position().toPoint()
 
@@ -189,12 +187,10 @@ class BuildOptionListView(QListView):
             last = self.getLastIndex()
 
             correctIndex = indexOfDrop if indexOfDrop.row() > -1 else last
-            print(correctIndex.row())
             name = self.model().data(correctIndex)
 
             if self._onCopy is not None:
                 val = self._onCopy(name)
-                print(val)
 
                 persistent = QPersistentModelIndex(last)
                 
@@ -265,6 +261,7 @@ class GraphGenPopup(QWidget):
         num_nodes_validator = QIntValidator()
         num_nodes_validator.setRange(MIN_NUM_NODES, MAX_NUM_NODES)
         self.num_nodes_input.setValidator(num_nodes_validator)
+        self.num_nodes_input.textChanged.connect(self.checkInput)
         vLayout.addWidget(self.num_nodes_input)
         self.num_nodes_input.textChanged.connect(self.checkInput)
         self.num_nodes_input.returnPressed.connect(self.accept)
@@ -353,7 +350,7 @@ class GraphGenPopup(QWidget):
             method, info = name_map[name]
 
             pop = BuilderOptionPopup(self, info)
-            return pop.exec_()
+            return (method, pop.exec_())
 
         self.buildList.onCopy(popupCallback)
         optionModel = BuilderOptionListModel(name_map.keys())
@@ -380,11 +377,11 @@ class GraphGenPopup(QWidget):
         if len(text) == 0 or int(text) == 0:
             self.isNumNodeDefined = False
             self.num_nodes = None
+            self.okButton.setEnabled(False)
         else:
+            self.okButton.setEnabled(True)
             self.isNumNodeDefined = True
             self.num_nodes = int(text)
-
-        self.validateInput()
 
     def selectMethod(self, method):
         if not hasattr(self, 'selected_methods'):
@@ -397,20 +394,6 @@ class GraphGenPopup(QWidget):
             self.selected_methods.add(method)
             self.isMethodSelected = True
 
-        self.validateInput()
-    
-    def validateInput(self):
-        # Check if we haven't defined these before checking them
-        if not hasattr(self, 'isMethodSelected'):
-            self.isMethodSelected = False
-        if not hasattr(self, 'isNumNodeDefined'):
-            self.isNumNodeDefined = False
-
-        if self.isMethodSelected and self.isNumNodeDefined:
-            self.okButton.setEnabled(True)
-        else:
-            self.okButton.setEnabled(False)
-
     def accept(self):
         if self.okButton.isEnabled():
             self.loop.exit(True)
@@ -419,8 +402,11 @@ class GraphGenPopup(QWidget):
             graphScene = self.parent().scene._graphScene
             curr_graph = graphScene._graph
 
-            from algorithms.random_graph import RandomGraphBuilder
-            new_graph = RandomGraphBuilder(directed=graphScene._isDirected).nodes(self.num_nodes).build()
+            steps = self.buildList.values()
+            new_graph = nx.DiGraph() if graphScene._isDirected else nx.Graph()
+            new_graph.add_nodes_from(range(self.num_nodes))
+            for f, args in steps:
+                new_graph = f(new_graph, **args)
 
             combined_graph = nx.disjoint_union(curr_graph, new_graph)
             graphScene._graph = combined_graph
@@ -521,17 +507,17 @@ class BuilderOptionPopup(QWidget):
                 case self.BuilderArgument.INT:
                     spin = QSpinBox()
                     namespin = name[:]
-                    self._grabbers.append(lambda: {namespin: spin.value()})
+                    self._grabbers.append(lambda: (namespin, spin.value()))
                     widg = spin
                 case self.BuilderArgument.REAL:
                     spind = QDoubleSpinBox()
                     namespind = name[:]
-                    self._grabbers.append(lambda: {namespind: spind.value()})
+                    self._grabbers.append(lambda: (namespind, spind.value()))
                     widg = spind
                 case self.BuilderArgument.BOOL:
                     check = QCheckBox()
                     namecheck = name[:]
-                    self._grabbers.append(lambda: {namecheck: check.isChecked()})
+                    self._grabbers.append(lambda: (namecheck, check.isChecked()))
                     widg = check
                 case self.BuilderArgument.RANGE:
                     widg = QGroupBox()
@@ -549,7 +535,7 @@ class BuilderOptionPopup(QWidget):
                     def grab():
                         lowVal = low.value()
                         highVal = high.value()
-                        return {namer: range(lowVal, highVal)}
+                        return (namer, range(lowVal, highVal))
                     
                     self._grabbers.append(grab)
 
@@ -588,4 +574,5 @@ class BuilderOptionPopup(QWidget):
         self.raise_()
         res = self.loop.exec()
         self.hide()
-        return [f() for f in self._grabbers] if res else None
+        mappings = [f() for f in self._grabbers]
+        return {m: a for (m, a) in mappings} if res else None
