@@ -175,6 +175,7 @@ class BuildOptionListView(QListView):
 
             if self._onCopy is not None:
                 val = self._onCopy(name)
+                print(val)
 
                 persistent = QPersistentModelIndex(last)
                 
@@ -333,9 +334,7 @@ class GraphGenPopup(QWidget):
             method, info = name_map[name]
 
             pop = BuilderOptionPopup(self, info)
-            pop.exec_()
-
-            return 1
+            return pop.exec_()
 
         self.buildList.onCopy(popupCallback)
         optionModel = BuilderOptionListModel(name_map.keys())
@@ -493,7 +492,7 @@ class BuilderOptionPopup(QWidget):
     def generate(self, map):
         layout = QVBoxLayout()
 
-        self
+        self._grabbers = []
 
         for name, t in map:
             parent = QGroupBox(name)
@@ -501,11 +500,20 @@ class BuilderOptionPopup(QWidget):
 
             match t:
                 case self.BuilderArgument.INT:
-                    widg = QSpinBox()
+                    spin = QSpinBox()
+                    namespin = name[:]
+                    self._grabbers.append(lambda: {namespin: spin.value()})
+                    widg = spin
                 case self.BuilderArgument.REAL:
-                    widg = QDoubleSpinBox()
+                    spind = QDoubleSpinBox()
+                    namespind = name[:]
+                    self._grabbers.append(lambda: {namespind: spind.value()})
+                    widg = spind
                 case self.BuilderArgument.BOOL:
-                    widg = QCheckBox()
+                    check = QCheckBox()
+                    namecheck = name[:]
+                    self._grabbers.append(lambda: {namecheck: check.isChecked()})
+                    widg = check
                 case self.BuilderArgument.RANGE:
                     widg = QGroupBox()
                     hLayout = QHBoxLayout()
@@ -517,6 +525,14 @@ class BuilderOptionPopup(QWidget):
                     high = QSpinBox()
                     high.setObjectName(name + 'high')
                     hLayout.addWidget(high)
+
+                    namer = name[:]
+                    def grab():
+                        lowVal = low.value()
+                        highVal = high.value()
+                        return {namer: range(lowVal, highVal)}
+                    
+                    self._grabbers.append(grab)
 
                     widg.setLayout(hLayout)
 
@@ -553,4 +569,4 @@ class BuilderOptionPopup(QWidget):
         self.raise_()
         res = self.loop.exec()
         self.hide()
-        return res
+        return [f() for f in self._grabbers] if res else None
