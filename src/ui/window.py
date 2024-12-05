@@ -165,6 +165,11 @@ class BuildOptionListView(QListView):
     def onCopy(self, f):
         self._onCopy = f
 
+    def values(self):
+        mapRows = {p.row(): v for (p, v) in self._map.items()}
+
+        return [mapRows[n] for n in sorted(mapRows.keys())]
+
     def dropEvent(self, event):
         super().dropEvent(event)
 
@@ -173,7 +178,6 @@ class BuildOptionListView(QListView):
         if event.dropAction() == Qt.DropAction.CopyAction:
             dropPos = event.position().toPoint()
 
-            errUp = QPoint(dropPos.x(), dropPos.y() - 10)
             errDown = QPoint(dropPos.x(), dropPos.y() + 10)
 
             indexOfDrop = self.indexAt(dropPos)
