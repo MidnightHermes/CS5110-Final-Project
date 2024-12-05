@@ -138,6 +138,11 @@ class GraphGenPopup(QWidget):
                 background: rgb(64, 64, 64);
             }
 
+            QLabel#title {
+                color: white;
+                font-size: 20pt;
+            }
+
             QPushButton#close {
                 color: white;
                 font-weight: bold;
@@ -154,18 +159,19 @@ class GraphGenPopup(QWidget):
         self.mainLayout.addWidget(self.container, alignment=Qt.AlignmentFlag.AlignCenter)
         self.container.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 
-        self.setLayout(self.mainLayout)
-
         buttonSize = self.fontMetrics().height()
         self.closeButton = QPushButton('x', self.container, objectName='close')
         self.closeButton.setFixedSize(buttonSize, buttonSize)
         self.closeButton.clicked.connect(self.reject)
 
+        vLayout = QVBoxLayout(self.container)
+        vLayout.setContentsMargins(buttonSize * 2, buttonSize, buttonSize * 2, buttonSize)
+
         title = QLabel('Select a graph generation method', objectName='title', alignment=Qt.AlignmentFlag.AlignCenter)
-        self.mainLayout.addWidget(title)
+        vLayout.addWidget(title)
 
         self.hLayout = QHBoxLayout(self.container)
-        self.hLayout.setContentsMargins(buttonSize * 2, buttonSize, buttonSize * 2, buttonSize)
+        vLayout.addLayout(self.hLayout)
 
         self.optionList = QListView(self)
         self.optionList.setDragEnabled(True)
@@ -181,24 +187,22 @@ class GraphGenPopup(QWidget):
         self.buildList.setDropIndicatorShown(True)
         self.hLayout.addWidget(self.buildList)
 
-        self.optionList.setModel(QStringListModel())
+        self.optionList.setModel(QStringListModel(["Clique", "Connected", "Weight", "Dog", "Cat"]))
         self.buildList.setModel(QStringListModel())
 
         self.optionList.setStyleSheet('''
             QListView { font-size: 20pt; font-weight: bold; }
-            QListView::item { backbround-color: #E74C3C; padding: 10%;
+            QListView::item { background-color: #E74C3C; padding: 10%;
                              border: 1px solid #C0392B; }
             QListView::item::hover { background-color: #C0392B }
         ''')
 
         self.buildList.setStyleSheet('''
             QListView { font-size: 20pt; font-weight: bold; }
-            QListView::item { backbround-color: #2ECC71; padding: 10%;
+            QListView::item { background-color: #2ECC71; padding: 10%;
                              border: 1px solid #27AE60; }
             QListView::item::hover { background-color: #27AE60 }
         ''')
-
-
 
         # parent.installEventFilter(self)
         self.loop = QEventLoop(self)
