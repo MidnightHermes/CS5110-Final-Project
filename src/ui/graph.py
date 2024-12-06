@@ -114,7 +114,10 @@ class GraphScene(ItemGroup):
             self.addToGroup(vertex)
 
         for edge in graph.edges(graph, data=True):
-            weight = edge[2]['weight']
+            try:
+                weight = edge[2]['weight']
+            except KeyError:
+                weight = None
             originVertex = next(vertex for vertex in self._vertexList if vertex.label == edge[0])
             linkVertex = next(vertex for vertex in self._vertexList if vertex.label == edge[1])
             offset_weight = self.doOffset(originVertex, linkVertex)

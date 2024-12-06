@@ -11,8 +11,10 @@ from PyQt6.QtWidgets import (
     QWidget,
     QLineEdit,
     QCheckBox,
+    QPushButton,
 )
 
+from ui.graphgen import GraphGenPopup
 from ui.scene import Scene
 from ui.edge import validateWeight
 
@@ -23,13 +25,13 @@ MIN_WEIGHT_INPUT = -1000
 
 class Window(QWidget):
     def __init__(self, graph: Optional[Union[nx.Graph, nx.DiGraph]]=None):
-
         super().__init__()
 
         self.scene = Scene(0, 0, 800, 400, graph)
 
         vbox = QVBoxLayout()
 
+        self.initGraphGenButton(vbox)
         self.initGraphTypeButtons(vbox)
         self.initStateButtons(vbox)
 
@@ -46,6 +48,16 @@ class Window(QWidget):
         hbox.addWidget(self.view)
 
         self.setLayout(hbox)
+    
+    def initGraphGenButton(self, vbox):
+        self.graph_gen_button = QPushButton("Generate Graph")
+        self.graph_gen_button.clicked.connect(self.showGraphGenPopup)
+        vbox.addWidget(self.graph_gen_button)
+
+    def showGraphGenPopup(self):
+        self.graph_gen_popup = GraphGenPopup(self)
+        if self.graph_gen_popup.exec_():
+            print("Generated new Graph!")
     
     def initGraphTypeButtons(self, vbox):
         vbox_top = QVBoxLayout()
