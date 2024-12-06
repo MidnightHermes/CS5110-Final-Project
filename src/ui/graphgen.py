@@ -16,9 +16,11 @@ from PyQt6.QtWidgets import (
     QLabel,
     QDialogButtonBox,
 )
+import enum
 
 MAX_NUM_NODES = 1000
 MIN_NUM_NODES = 1
+
 
 class BuilderOptionListModel(QStringListModel):
     def __init__(self, *args, **kwargs):
@@ -30,7 +32,8 @@ class BuilderOptionListModel(QStringListModel):
                 | Qt.ItemFlag.ItemIsDropEnabled
                 | Qt.ItemFlag.ItemIsEnabled
                 | Qt.ItemFlag.ItemNeverHasChildren)
-    
+
+
 class BuildOptionListView(QListView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -90,6 +93,7 @@ class BuildOptionListView(QListView):
                 persistent = QPersistentModelIndex(last)
                 
                 self._map[persistent] = val
+
 
 class GraphGenPopup(QWidget):
     """
@@ -170,14 +174,12 @@ class GraphGenPopup(QWidget):
         self.okButton = buttonBox.button(buttonBox.StandardButton.Ok)
         self.okButton.setEnabled(False)
 
-        # parent.installEventFilter(self)
+        parent.installEventFilter(self)
         self.loop = QEventLoop(self)
 
     @property
     def methods(self):
         from algorithms.random_graph import RandomGraphBuilder
-
-        
 
         clique = {RandomGraphBuilder.clique:
                     {'name': 'Clique',
@@ -277,22 +279,33 @@ class GraphGenPopup(QWidget):
         if len(text) == 0 or int(text) == 0:
             self.isNumNodeDefined = False
             self.num_nodes = None
-            self.okButton.setEnabled(False)
         else:
-            self.okButton.setEnabled(True)
             self.isNumNodeDefined = True
             self.num_nodes = int(text)
+        
+        self.validateInput()
 
-    def selectMethod(self, method):
-        if not hasattr(self, 'selected_methods'):
-            self.selected_methods = set()
-        if method in self.selected_methods:
-            self.selected_methods.remove(method)
-            if len(self.selected_methods) == 0:
-                self.isMethodSelected = False
+    def validateInput(self):
+        # Check if we haven't defined these before checking them
+        if not hasattr(self, 'isMethodSelected'):
+            self.isMethodSelected = False
+        if not hasattr(self, 'isNumNodeDefined'):
+            self.isNumNodeDefined = False
+
+        if self.isMethodSelected and self.isNumNodeDefined:
+            self.okButton.setEnabled(True)
         else:
-            self.selected_methods.add(method)
+            self.okButton.setEnabled(False)
+
+    # TODO: Call this method every time an item enters or leaves buildList
+    def selectMethod(self):
+        # If there's no items in the list
+        if self.buildList.model().rowCount() == 0:
+            self.isMethodSelected = False
+        else:
             self.isMethodSelected = True
+
+        self.validateInput()
 
     def accept(self):
         if self.okButton.isEnabled():
@@ -337,8 +350,7 @@ class GraphGenPopup(QWidget):
         res = self.loop.exec()
         self.hide()
         return res
-    
-import enum
+
 
 class BuilderOptionPopup(QWidget):
     # Extend this if there is a new kind of argument needed for the builder methods.

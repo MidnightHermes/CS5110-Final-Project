@@ -1,24 +1,17 @@
 from typing import Optional, Union
 import networkx as nx
-from PyQt6.QtCore import Qt, QEventLoop, QPersistentModelIndex, QPoint, QStringListModel
-from PyQt6.QtGui import QPainter, QDoubleValidator, QIntValidator
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPainter, QDoubleValidator
 from PyQt6.QtWidgets import (
     QButtonGroup,
-    QDoubleSpinBox,
     QGraphicsView,
-    QGroupBox,
     QHBoxLayout,
     QRadioButton,
     QVBoxLayout,
     QWidget,
     QLineEdit,
-    QListView,
     QCheckBox,
     QPushButton,
-    QSizePolicy,
-    QSpinBox,
-    QLabel,
-    QDialogButtonBox,
 )
 
 from ui.graphgen import GraphGenPopup
@@ -123,4 +116,3 @@ class Window(QWidget):
         self.mode_group.addButton(self.select_mode)
         self.mode_group.addButton(self.vertex_mode)
         self.mode_group.addButton(self.edge_mode)
-
