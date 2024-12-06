@@ -472,7 +472,7 @@ class BuilderOptionPopup(QWidget):
 
     def exec_(self):
         if len(self._fInfo['args']) == 0:
-            return []
+            return {}
 
         self.show()
         self.raise_()
