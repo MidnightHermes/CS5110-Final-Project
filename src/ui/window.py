@@ -200,6 +200,8 @@ class GraphGenPopup(QWidget):
     """
     Based on https://stackoverflow.com/questions/67029993/pyqt-creating-a-popup-in-the-window
     and https://www.youtube.com/watch?v=TlLxyuQKbv4
+
+    To extend, go to the methods property
     """
     def __init__(self, parent):
         super().__init__(parent)
@@ -316,6 +318,10 @@ class GraphGenPopup(QWidget):
                     {'name': 'Cycle',
                      'args': [('length', BuilderOptionPopup.BuilderArgument.INT),
                               ('negative_weight', BuilderOptionPopup.BuilderArgument.BOOL)]}}
+        
+        # To add more. make a dict with the method as the key, then the value is another dict with
+        # a name pair and args mapping. args maps to a list of pairs containing the exact name of the
+        # function argument with the BuilderArgument type. Then add the new item to the union below.
 
         return (clique
                 | random_edges
@@ -441,6 +447,8 @@ class GraphGenPopup(QWidget):
 import enum
 
 class BuilderOptionPopup(QWidget):
+    # Extend this if there is a new kind of argument needed for the builder methods.
+    # If extended, must add a new case to the generate method
     class BuilderArgument(enum.Enum):
         INT = enum.auto()
         BOOL = enum.auto()
@@ -502,7 +510,9 @@ class BuilderOptionPopup(QWidget):
         for name, t in map:
             parent = QGroupBox(name)
             littleLayout = QVBoxLayout()
-
+            
+            # The name has to be copied under a different variable name,
+            # and similar goes with the widget in order for the lambdas to work correctly.
             match t:
                 case self.BuilderArgument.INT:
                     spin = QSpinBox()
@@ -540,10 +550,11 @@ class BuilderOptionPopup(QWidget):
                     self._grabbers.append(grab)
 
                     widg.setLayout(hLayout)
+                case _:
+                    raise ValueError("BuilderArgument type not supported")
 
             widg.setObjectName(name)
             littleLayout.addWidget(widg)
-                
 
             parent.setLayout(littleLayout)
             layout.addWidget(parent)
@@ -551,11 +562,10 @@ class BuilderOptionPopup(QWidget):
         return layout
 
     def accept(self):
-        # TODO: functionality
-
         self.loop.exit(True)
 
     def reject(self):
+        # TODO: delete item on reject
         self.loop.exit(False)
 
     def showEvent(self, event):
@@ -574,5 +584,6 @@ class BuilderOptionPopup(QWidget):
         self.raise_()
         res = self.loop.exec()
         self.hide()
+
         mappings = [f() for f in self._grabbers]
         return {m: a for (m, a) in mappings} if res else None
