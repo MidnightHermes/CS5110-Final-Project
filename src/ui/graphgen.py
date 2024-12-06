@@ -277,35 +277,11 @@ class GraphGenPopup(QWidget):
     def checkInput(self):
         text = self.num_nodes_input.text()
         if len(text) == 0 or int(text) == 0:
-            self.isNumNodeDefined = False
+            self.okButton.setEnabled(False)
             self.num_nodes = None
         else:
-            self.isNumNodeDefined = True
-            self.num_nodes = int(text)
-        
-        self.validateInput()
-
-    def validateInput(self):
-        # Check if we haven't defined these before checking them
-        if not hasattr(self, 'isMethodSelected'):
-            self.isMethodSelected = False
-        if not hasattr(self, 'isNumNodeDefined'):
-            self.isNumNodeDefined = False
-
-        if self.isMethodSelected and self.isNumNodeDefined:
             self.okButton.setEnabled(True)
-        else:
-            self.okButton.setEnabled(False)
-
-    # TODO: Call this method every time an item enters or leaves buildList
-    def selectMethod(self):
-        # If there's no items in the list
-        if self.buildList.model().rowCount() == 0:
-            self.isMethodSelected = False
-        else:
-            self.isMethodSelected = True
-
-        self.validateInput()
+            self.num_nodes = int(text)
 
     def accept(self):
         if self.okButton.isEnabled():
@@ -406,6 +382,7 @@ class BuilderOptionPopup(QWidget):
         buttonBox.rejected.connect(self.reject)
         self.okButton = buttonBox.button(buttonBox.StandardButton.Ok)
 
+        parent.installEventFilter(self)
         self.loop = QEventLoop(self)
 
     def generate(self, map):
