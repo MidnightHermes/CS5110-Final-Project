@@ -2,14 +2,14 @@ import unittest
 import networkx as nx
 
 from prims import prims
-from random_graph import RandomGraph
+from random_graph import RandomGraphBuilder as randG
 
 
 class TestPrimsAlgorithm(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Generate a random complete connected weighted graph
-        cls.graph = RandomGraph(directed=False).graph
+        cls.graph = randG().nodes(10).complete().connected().weighted(range(1, 10)).build()
         
         # then apply Prim's algorithm to it
         cls.mst = prims(cls.graph)
