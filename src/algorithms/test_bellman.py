@@ -2,6 +2,7 @@ import unittest
 import networkx as nx
 
 from bellman import NegativeCycleException, bellman_ford
+from random_graph import RandomGraphBuilder
 
 def add_weighted_edges(g, edges):
     """
@@ -111,6 +112,8 @@ class TestNegativeCycles(unittest.TestCase):
                                                 (5, 1, 1),
                                                 (6, 1, 6),
                                                 (7, 3, -2)])
+        
+        cls.nonConnectedCycle = RandomGraphBuilder().nodes(10).directed().strongly_connected(False).weighted(range(1, 100)).cycle(3, True, True).build()
 
     def checkCycle(self, g, s, cycle):
         self.assertRaises(NegativeCycleException, bellman_ford, g, s)
@@ -133,6 +136,13 @@ class TestNegativeCycles(unittest.TestCase):
 
     def test_nonSourceCycle(self):
         self.checkCycle(self.nonSourceCycle, 4, (0, 1, 2, 3))
+
+    def test_nonConnectedCycle(self):
+        # shouldn't raise an exception
+        bellman_ford(self.nonConnectedCycle, 0)
+
+        # should raise exception
+        self.assertRaises(NegativeCycleException, bellman_ford, self.nonConnectedCycle, 11)
 
 if __name__ == '__main__':
     unittest.main()
