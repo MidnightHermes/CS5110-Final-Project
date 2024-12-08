@@ -69,7 +69,7 @@ def bellman_ford(g, source):
 
     for (u, v) in edges:
         w = edges[u, v]['weight']
-        if distance[u] + w < distance[v]:
+        if distance[u] + w < distance[v] and distance[v] < inf:
             raise NegativeCycleException(u, v, predecessor)
 
     return distance, predecessor
