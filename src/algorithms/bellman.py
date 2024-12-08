@@ -54,6 +54,8 @@ def bellman_ford(g, source):
     all_weights = get_edge_attributes(g, 'weight').values()
     inf = sum(map(abs, all_weights)) + 1
 
+    # assign impossibly large number to be "infinity"
+
     distance = {v: inf * 2 for v in g.nodes}
     predecessor = {v: None for v in g.nodes}
 
@@ -63,10 +65,13 @@ def bellman_ford(g, source):
         for (u, v) in edges:
             w = edges[u, v]['weight']
             relax = distance[u] + w
+
+            # If True, a new shortest path has been discovered
             if relax < inf and relax < distance[v]:
                 distance[v] = distance[u] + w
                 predecessor[v] = u
 
+    # Detect negative cycle
     for (u, v) in edges:
         w = edges[u, v]['weight']
         if distance[u] + w < distance[v] and distance[v] < inf:
