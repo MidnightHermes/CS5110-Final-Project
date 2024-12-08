@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 from typing import Callable, Tuple
 
 
-def measure_runtime(algorithm: Callable[[nx.Graph], any], graph_gen_function: Callable[[int, int], nx.Graph]) -> Tuple[range, list, list]:
+def measure_runtime(algorithm: Callable[[nx.Graph], any], graph_gen_function: Callable[[int, int], nx.Graph], runtime_function: Callable[[int, int], float]) -> Tuple[range, list, list]:
     """
     Measure the runtime of the given algorithm on graphs with various numbers of nodes `range(10, 1000, 50)`.
 
     :param algorithm: The algorithm to measure the runtime of. (Assumes a single argument *G*)
     :param graph_gen_function: A function that generates a random graph. (Assumes two arguments *num_nodes* and *num_edges*)
+    :param runtime_function: A function that calculate the expected runtime of the algorithm. (Assumes two arguments, *num_nodes* and *num_edges*)
     :return results: A tuple of 3 lists containing the number of nodes, the measured runtimes, and the expected runtimes.
     """
     node_counts = range(10, 1000, 50)
@@ -26,7 +27,7 @@ def measure_runtime(algorithm: Callable[[nx.Graph], any], graph_gen_function: Ca
         algorithm(G)
         runtimes.append(time.time() - start_time)
 
-        expected_runtime = num_edges * np.log(n) / 1e6
+        expected_runtime = runtime_function(n, num_edges) / 1e6  # Convert time units down
         expected_times.append(expected_runtime)
 
     return [(node_counts, runtimes, expected_times)]
@@ -79,6 +80,9 @@ def main():
                .weighted(range(1, 100)) \
                .build()
 
+    def runtime_function(num_nodes, num_edges):
+        return num_edges * np.log(num_nodes)
+
     count = 0
     while True:
         MAX_ATTEMPTS = 50
@@ -87,7 +91,7 @@ def main():
         count += 1
 
         try:
-            results = measure_runtime(algorithm, graph_gen_function)
+            results = measure_runtime(algorithm, graph_gen_function, runtime_function)
             print(results)
             break
         except:
