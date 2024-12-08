@@ -34,7 +34,7 @@ def measure_runtime(algorithm: Callable[[nx.Graph], any], graph_gen_function: Ca
 
 
 def plot_results(results, algorithm_name: str, expected_runtime: str, line_color: str):
-    plt.figure(figsize=(12, 8), facecolor="#16242f")
+    plt.figure(figsize=(6, 4), facecolor="#16242f")
     ax = plt.axes()
     ax.set_facecolor("#16242f")
     ax.spines['top'].set_visible(False)
@@ -54,11 +54,11 @@ def plot_results(results, algorithm_name: str, expected_runtime: str, line_color
 
     plt.xlabel("Number of Vertices ($V$)")
     plt.ylabel("Execution Time (seconds)")
-    plt.title(f"Time Complexity of {algorithm_name.capitalize}", color="white")
+    plt.title(f"Time Complexity of {algorithm_name.capitalize()}", color="white")
     plt.legend(facecolor="#16242f", labelcolor='linecolor')
     plt.xlim(10, 1000)
     plt.ylim(0, 1)
-    plt.xticks(node_counts)
+    plt.xticks(node_counts[::2])
     plt.savefig(f"src/algorithms/{algorithm_name}_time_complexity.png")
     plt.show()
 
@@ -94,7 +94,7 @@ def main():
         except:
             pass
 
-    plot_results(results, str(algorithm.__name__), \
+    plot_results(results, algorithm.__name__, \
                  expected_runtime="Expected Runtime: $O(|E| \log |V|)$", \
                  line_color="#eb8fd8"\
                 )
