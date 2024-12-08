@@ -18,6 +18,7 @@ def measure_runtime(algorithm: Callable[[nx.Graph], any], graph_gen_function: Ca
     node_counts = range(10, 1000, 50)
     runtimes = []
     expected_times = []
+    ratios = []
     for n in node_counts:
         max_edges = n * (n - 1)
         num_edges = max_edges * 0.1
@@ -25,10 +26,20 @@ def measure_runtime(algorithm: Callable[[nx.Graph], any], graph_gen_function: Ca
 
         start_time = time.time()
         algorithm(G)
-        runtimes.append(time.time() - start_time)
+        runtime = time.time() - start_time
+        runtimes.append(runtime)
 
         expected_runtime = runtime_function(n, num_edges) / 1e6  # Convert time units down
         expected_times.append(expected_runtime)
+
+        # calculate how much faster the actual runtime is over the expected runtime
+        ratio = runtime / expected_runtime
+        ratios.append(ratio)
+
+    # find the average ratio and multiply the expected times by it to better fit the runtime curve
+    ratios.sort()
+    c = ratios[len(ratios) // 2]
+    expected_times = [t * c for t in expected_times]
 
     return [(node_counts, runtimes, expected_times)]
 
