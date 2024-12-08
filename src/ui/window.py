@@ -89,6 +89,10 @@ class Window(QWidget):
         self.edge_mode.toggled.connect(self.scene.toggleEdgeMode)
         vbox.addWidget(self.edge_mode)
 
+        self.clear_graph_button = QPushButton("Clear Graph")
+        self.clear_graph_button.clicked.connect(self.scene._graphScene.clearGraph)
+        vbox.addWidget(self.clear_graph_button)
+
         weight_hbox = QHBoxLayout()
         weight_input = QLineEdit("")
         weight_input.setPlaceholderText("Enter weight")

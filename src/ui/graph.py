@@ -86,6 +86,16 @@ class GraphScene(ItemGroup):
     def edges(self):
         return self._edgeList
     
+    def clearGraph(self):
+        self._vertexList.clear()
+        self._edgeList.clear()
+        self._graph.clear()
+        remaining = self.scene().items(self.scene().sceneRect())
+        for item in remaining:
+            if isinstance(item, Vertex) or isinstance(item, Edge):
+                self.scene().removeItem(item)
+        self._originVertex = None
+    
     def setGraphType(self, graph_type: bool):
         self._isDirected = graph_type
         if graph_type:
