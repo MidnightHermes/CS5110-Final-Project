@@ -217,6 +217,8 @@ class RandomGraphBuilder:
                 low[node] = min(low[node], start_time[v])
 
             if low[node] > 0 and low[node] == start_time[node]:
+                # TODO: Fix possible infinite loop. Probably by pruning away pairs with connections already
+                #       instead of picking randomly until the conditions are satisfied.
                 backwards = True
                 while backwards:
                     x = random.randint(start_time[node], global_time)
@@ -272,8 +274,16 @@ class RandomGraphBuilder:
         return g
     
     @transform
-    def cycle(g, length, negative_weight=False):
-        nodes = random.sample(list(g.nodes), length)
+    def cycle(g, length, add_new_nodes=False, negative_weight=False):
+        if add_new_nodes:
+            last_node = g.number_of_nodes()
+            new_nodes = range(last_node, last_node + length)
+
+            g.add_nodes_from(new_nodes)
+
+            nodes = list(new_nodes)
+        else:
+            nodes = random.sample(list(g.nodes), length)
 
         for i in range(len(nodes)):
             j = (i + 1) % len(nodes)
