@@ -21,7 +21,6 @@ def measure_runtime(algorithm: Callable[[nx.Graph], any], graph_gen_function: Ca
         max_edges = n * (n - 1)
         num_edges = max_edges * 0.1
         G = graph_gen_function(n, num_edges)
-        nx.set_edge_attributes(G, {e: {'weight': random.randint(1, 100)} for e in G.edges})
 
         start_time = time.time()
         algorithm(G)
