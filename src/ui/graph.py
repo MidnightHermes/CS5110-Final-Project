@@ -106,6 +106,8 @@ class GraphScene(ItemGroup):
         # Then normalize the positions to match PyQt6 coordinate system
         min_x = min(x for x, y in positions.values())
         min_y = min(y for x, y in positions.values())
+        # Finally, update the backend graph object to include the new graph
+        self._graph = nx.disjoint_union(self._graph, graph)
         for node, (x, y) in positions.items():
             # And scale the positions to fit the size of the scene
             vertex = Vertex((x - min_x * 2) * 200, (y - min_y * 1.5) * 150)
@@ -126,6 +128,13 @@ class GraphScene(ItemGroup):
             linkVertex.addEdge(edge)
             self._edgeList.append(edge)
             self.addToGroup(edge)
+        
+        if self.scene()._isSelectMode:
+            self.scene().toggleSelectMode(True)
+        elif self.scene()._isVertexMode:
+            self.scene().toggleVertexMode(True)
+        elif self.scale()._isEdgeMode:
+            self.scene().toggleEdgeMode(True)
     
     def doOffset(self, originVertex, linkVertex):
         return any(edge._linkVertex == originVertex for edge in linkVertex._edges)
