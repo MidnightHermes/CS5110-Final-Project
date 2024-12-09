@@ -78,7 +78,7 @@ class RunAlgPopup(QWidget):
         self.bellman_ford_runner = BellmanFordRunner(parent.scene)
         self.bellman_ford_button = QPushButton("Bellman-Ford Algorithm")
         self.bellman_ford_button.clicked.connect(self.accept)
-        self.bellman_ford_button.clicked.connect(self.bellman_ford_runner.run)
+        self.bellman_ford_button.clicked.connect(self.bellman_ford_runner.assignMouse)
         layout.addWidget(self.bellman_ford_button)
 
         from ui.runners.max_clique_runner import MaxCliqueRunner
