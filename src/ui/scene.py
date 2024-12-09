@@ -26,6 +26,11 @@ class Scene(QGraphicsScene):
         self._dragging = False # True if scene is in a scene dragging state
         self._dragMousePos = None
 
+        self._needBFSource = False
+        self._bellmanHook = None
+
+        self._resetColorOnClick = False
+
     def toggleSelectMode(self, b):
         self._isSelectMode = b
 
@@ -74,6 +79,16 @@ class Scene(QGraphicsScene):
             toBeRemoved.remove()
 
     def mousePressEvent(self, e):
+        if self._resetColorOnClick:
+            self._graphScene.clearColors()
+
+        if self._needBFSource:
+            v = self.getVertexUnderMouse()
+            if v is not None:
+                self._bellmanHook(v.label)
+
+            return None
+
         if self._isSelectMode:
             if e.button() == Qt.MouseButton.LeftButton and self.getVertexUnderMouse() is None:
                 if not e.modifiers() & Qt.KeyboardModifier.ControlModifier:
