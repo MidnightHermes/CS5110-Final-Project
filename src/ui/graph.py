@@ -1,6 +1,6 @@
 from typing import Optional
 import networkx as nx
-from PyQt6.QtCore import QRectF
+from PyQt6.QtCore import Qt, QRectF
 from PyQt6.QtGui import QTransform
 from PyQt6.QtWidgets import QGraphicsItem
 
@@ -73,6 +73,9 @@ class GraphScene(ItemGroup):
             self.importGraph(graph)
         else:
             self._graph = nx.DiGraph()
+
+        self._coloredVertices = {}
+        self._coloredEdges = {}
 
     @property
     def graph(self):
@@ -170,7 +173,7 @@ class GraphScene(ItemGroup):
             offset_weight = self.doOffset(self._originVertex, nearest_vertex)
             
             edge_args = (self._originVertex, nearest_vertex)
-            edge = Edge(*edge_args, directed=self._isWeighted, doOffset=offset_weight)
+            edge = Edge(*edge_args, directed=self._isDirected, doOffset=offset_weight)
 
             self._graph.add_edge(self._originVertex.label, nearest_vertex.label, weight=edge.weight)
 
@@ -209,3 +212,41 @@ class GraphScene(ItemGroup):
             
             if call_backend:
                 self._graph.remove_edge(*item.pair)
+
+    def colorVertices(self, vertices, color):
+        toColor = []
+
+        for query in vertices:
+            # terrible no good linear search
+            for v in self._vertexList:
+                if v.label == query:
+                    toColor.append(v)
+
+        for v in toColor:
+            v.innerColor = color
+        
+        vs = set(toColor)
+        self._coloredVertices |= vs
+
+    def colorEdges(self, edges, color):
+        toColor = []
+
+        for query in edges:
+            # that linear search again
+            for e in self._edgeList:
+                if e.pair == query or (not self._isDirected and tuple(reversed(e.pair)) == query):
+                    toColor.append(e)
+
+        for e in toColor:
+            e.color = color
+
+        es = set(toColor)
+        self._coloredEdges |= es
+
+    def clearColors(self):
+        for v in self._coloredVertices:
+            v.innerColor = Qt.GlobalColor.white
+            v.outerColor = Qt.GlobalColor.black
+
+        for e in self._coloredEdges:
+            e.color = Qt.GlobalColor.black
