@@ -143,7 +143,7 @@ class GraphScene(ItemGroup):
             self.scene().toggleSelectMode(True)
         elif self.scene()._isVertexMode:
             self.scene().toggleVertexMode(True)
-        elif self.scale()._isEdgeMode:
+        elif self.scene()._isEdgeMode:
             self.scene().toggleEdgeMode(True)
     
     def doOffset(self, originVertex, linkVertex):
