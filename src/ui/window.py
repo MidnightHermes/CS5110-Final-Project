@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
 )
 
 from ui.graphgen import GraphGenPopup
+from ui.runalg import RunAlgPopup
 from ui.scene import Scene
 from ui.edge import validateWeight
 
@@ -31,6 +32,7 @@ class Window(QWidget):
 
         vbox = QVBoxLayout()
 
+        self.initRunAlgButton(vbox)
         self.initGraphGenButton(vbox)
         self.initGraphTypeButtons(vbox)
         self.initStateButtons(vbox)
@@ -58,6 +60,16 @@ class Window(QWidget):
         self.graph_gen_popup = GraphGenPopup(self)
         if self.graph_gen_popup.exec_():
             print("Generated new Graph!")
+    
+    def initRunAlgButton(self, vbox):
+        self.run_alg_button = QPushButton("Run Algorithm")
+        self.run_alg_button.clicked.connect(self.runAlgorithm)
+        vbox.addWidget(self.run_alg_button)
+    
+    def runAlgorithm(self):
+        self.run_alg_popup = RunAlgPopup(self)
+        if self.run_alg_popup.exec_():
+            print("Running Algorithm!")
     
     def initGraphTypeButtons(self, vbox):
         vbox_top = QVBoxLayout()
@@ -88,6 +100,10 @@ class Window(QWidget):
         self.edge_mode = QRadioButton("Edges")
         self.edge_mode.toggled.connect(self.scene.toggleEdgeMode)
         vbox.addWidget(self.edge_mode)
+
+        self.clear_graph_button = QPushButton("Clear Graph")
+        self.clear_graph_button.clicked.connect(self.scene._graphScene.clearGraph)
+        vbox.addWidget(self.clear_graph_button)
 
         weight_hbox = QHBoxLayout()
         weight_input = QLineEdit("")

@@ -34,14 +34,36 @@ class Vertex(QGraphicsEllipseItem):
         item = TextItems(str(Vertex._next_label), self)
         Vertex._next_label += 1
 
+        # Define default colors
+        self._outerColor = Qt.GlobalColor.black
+        self._innerColor = Qt.GlobalColor.white
+
         # Pen describes the outline of a shape.
-        self._circlePen = QPen(Qt.GlobalColor.black)
+        self._circlePen = QPen(self.outerColor)
         self._circlePen.setWidth(3)
 
         # Brush describes the inside of a shape
-        self._circleBrush = QBrush(Qt.GlobalColor.white)
+        self._circleBrush = QBrush(self.innerColor)
 
         self.setPen(self._circlePen)
+        self.setBrush(self._circleBrush)
+    
+    @property
+    def outerColor(self) -> Qt.GlobalColor:
+        return self._outerColor
+    
+    @property
+    def innerColor(self) -> Qt.GlobalColor:
+        return self._innerColor
+    
+    @outerColor.setter
+    def outerColor(self, color: Qt.GlobalColor):
+        self._circlePen.setColor(color)
+        self.setPen(self._circlePen)
+    
+    @innerColor.setter
+    def innerColor(self, color: Qt.GlobalColor):
+        self._circleBrush.setColor(color)
         self.setBrush(self._circleBrush)
 
     @property

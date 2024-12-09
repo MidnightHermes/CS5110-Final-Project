@@ -40,7 +40,8 @@ class Edge(QGraphicsItemGroup):
         self._visibleLine = QGraphicsLineItem(pOrigin.x(), pOrigin.y(), pLink.x(), pLink.y())
         self._visibleLine.setZValue(-2)
 
-        self._linePen = QPen(Qt.GlobalColor.black)
+        self._color = Qt.GlobalColor.black
+        self._linePen = QPen(self._color)
         self._linePen.setWidth(3)
         self._visibleLine.setPen(self._linePen)
 
@@ -57,15 +58,27 @@ class Edge(QGraphicsItemGroup):
         Edge._created += 1
 
         self._weightText = EdgeWeightTextItem(f'{_weight:g}', self._visibleLine, doOffset)
+        self._weightText.setBrush(QBrush(self._color))
         self._weight = _weight
 
         # Handle arrowHead
         self._arrowHead = QGraphicsPolygonItem(self.getArrow(), self)
-        self._arrowHead.setBrush(QBrush(Qt.GlobalColor.black))
+        self._arrowHead.setBrush(QBrush(self._color))
         self._arrowHead.setZValue(-1)
 
         if directed:
             self.addToGroup(self._arrowHead)
+    
+    @property
+    def color(self):
+        return self._linePen.color()
+    
+    @color.setter
+    def color(self, color: Qt.GlobalColor):
+        self._linePen.setColor(color)
+        self._linePen.setWidth(3)
+        self._visibleLine.setPen(self._linePen)
+        self._arrowHead.setBrush(QBrush(color))
 
     def getEndpoints(self):
         theta = self.theta

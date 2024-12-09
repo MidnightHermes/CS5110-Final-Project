@@ -418,17 +418,23 @@ class BuilderOptionPopup(QWidget):
 
                     low = QSpinBox()
                     low.setObjectName(name + 'low')
+                    low.setRange(-1000, 1000)
                     hLayout.addWidget(low)
 
                     high = QSpinBox()
                     high.setObjectName(name + 'high')
+                    high.setRange(-1000, 1000)
                     hLayout.addWidget(high)
 
                     namer = name[:]
                     def grab():
                         lowVal = low.value()
                         highVal = high.value()
-                        return (namer, range(lowVal, highVal))
+                        if lowVal > highVal:
+                            rnge = range(highVal, lowVal)
+                        else:
+                            rnge = range(lowVal, highVal)
+                        return (namer, rnge)
                     
                     self._grabbers.append(grab)
 

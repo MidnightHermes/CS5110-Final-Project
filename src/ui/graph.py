@@ -1,6 +1,6 @@
 from typing import Optional
 import networkx as nx
-from PyQt6.QtCore import QRectF
+from PyQt6.QtCore import Qt, QRectF
 from PyQt6.QtGui import QTransform
 from PyQt6.QtWidgets import QGraphicsItem
 
@@ -74,6 +74,9 @@ class GraphScene(ItemGroup):
         else:
             self._graph = nx.DiGraph()
 
+        self._coloredVertices = set()
+        self._coloredEdges = set()
+
     @property
     def graph(self):
         return self._graph
@@ -85,6 +88,17 @@ class GraphScene(ItemGroup):
     @property
     def edges(self):
         return self._edgeList
+    
+    def clearGraph(self):
+        self._vertexList.clear()
+        self._edgeList.clear()
+        self._graph.clear()
+        remaining = self.scene().items(self.scene().sceneRect())
+        for item in remaining:
+            if isinstance(item, Vertex) or isinstance(item, Edge):
+                self.scene().removeItem(item)
+        self._originVertex = None
+        Vertex._next_label = 0
     
     def setGraphType(self, graph_type: bool):
         self._isDirected = graph_type
@@ -133,7 +147,7 @@ class GraphScene(ItemGroup):
             self.scene().toggleSelectMode(True)
         elif self.scene()._isVertexMode:
             self.scene().toggleVertexMode(True)
-        elif self.scale()._isEdgeMode:
+        elif self.scene()._isEdgeMode:
             self.scene().toggleEdgeMode(True)
     
     def doOffset(self, originVertex, linkVertex):
@@ -159,7 +173,7 @@ class GraphScene(ItemGroup):
             offset_weight = self.doOffset(self._originVertex, nearest_vertex)
             
             edge_args = (self._originVertex, nearest_vertex)
-            edge = Edge(*edge_args, directed=self._isWeighted, doOffset=offset_weight)
+            edge = Edge(*edge_args, directed=self._isDirected, doOffset=offset_weight)
 
             self._graph.add_edge(self._originVertex.label, nearest_vertex.label, weight=edge.weight)
 
@@ -198,3 +212,41 @@ class GraphScene(ItemGroup):
             
             if call_backend:
                 self._graph.remove_edge(*item.pair)
+
+    def colorVertices(self, vertices, color):
+        toColor = []
+
+        for query in vertices:
+            # terrible no good linear search
+            for v in self._vertexList:
+                if v.label == query:
+                    toColor.append(v)
+
+        for v in toColor:
+            v.innerColor = color
+        
+        vs = set(toColor)
+        self._coloredVertices |= vs
+
+    def colorEdges(self, edges, color):
+        toColor = []
+
+        for query in edges:
+            # that linear search again
+            for e in self._edgeList:
+                if e.pair == query or (not self._isDirected and tuple(reversed(e.pair)) == query):
+                    toColor.append(e)
+
+        for e in toColor:
+            e.color = color
+
+        es = set(toColor)
+        self._coloredEdges |= es
+
+    def clearColors(self):
+        for v in self._coloredVertices:
+            v.innerColor = Qt.GlobalColor.white
+            v.outerColor = Qt.GlobalColor.black
+
+        for e in self._coloredEdges:
+            e.color = Qt.GlobalColor.black
