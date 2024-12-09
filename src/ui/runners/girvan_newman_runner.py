@@ -12,26 +12,13 @@ class GirvanNewmanRunner:
 
     def run(self):
         self.communities, self.edges = next(girvan_newman(self.graph, return_extra_info=True))
-        # Make a copy because NetworkX passes by reference instead of value (very annoying)
-        self.edges = list(self.edges).copy()
 
-        self.graphScene.clearGraph()
-
-        colors = [Qt.GlobalColor.red, Qt.GlobalColor.blue]
+        colors = [Qt.GlobalColor.red, Qt.GlobalColor.blue, Qt.GlobalColor.green, Qt.GlobalColor.magenta]
         # Don't add edges that were drawn in the previous community
         previous_communities = []
-        final_graph = nx.Graph()
         for i, community in enumerate(self.communities):
-            G = nx.Graph()
-
-            new_edges = [edge for edge in self.edges if (edge[0] not in previous_communities and edge[1] not in previous_communities) and (edge[0] in community and edge[1] in community)]
+            new_edges = [(edge[0], edge[1]) for edge in self.edges if (edge[0] not in previous_communities and edge[1] not in previous_communities) and (edge[0] in community and edge[1] in community)]
+            print(new_edges)
+            self.graphScene.colorEdges(new_edges, colors[i])
             previous_communities.extend(community)
-            print(len(new_edges))
-            G.add_edges_from(new_edges)
-
-            print(community, G.nodes, '\n\n', previous_communities, '\n\n\n\n')
-            final_graph = nx.compose(final_graph, G)
-        
-        self.graphScene.importGraph(final_graph)
-        for i, community in enumerate(self.communities):
             self.graphScene.colorVertices(community, colors[i])
