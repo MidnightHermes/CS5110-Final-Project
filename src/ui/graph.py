@@ -95,6 +95,7 @@ class GraphScene(ItemGroup):
             if isinstance(item, Vertex) or isinstance(item, Edge):
                 self.scene().removeItem(item)
         self._originVertex = None
+        Vertex._next_label = 0
     
     def setGraphType(self, graph_type: bool):
         self._isDirected = graph_type
