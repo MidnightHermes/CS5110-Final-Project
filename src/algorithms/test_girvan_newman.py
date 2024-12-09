@@ -36,16 +36,19 @@ class TestGirvanNewmanRuntime(unittest.TestCase):
             G = randG().nodes(n).random_edges(0.5).build()
             num_edges = len(G.edges())
 
-            start_time = time.time()
-            girvan_newman(G)
-            runtimes.append(time.time() - start_time)
+            avg_runtimes = []
+            for _ in range(10):
+                start_time = time.time()
+                girvan_newman(G)
+                avg_runtimes.append(time.time() - start_time)
+            runtimes.append(sum(avg_runtimes) / len(avg_runtimes))
 
-            # Girvan-Newman should have a runtime of EV**2 for unweighted graphs
-            expected_runtime = (num_edges * n**2) / 1e17
+            # Girvan-Newman should have a runtime of VE**2 for unweighted graphs
+            expected_runtime = (n * num_edges**2) / 1e20
             expected_times.append(expected_runtime)
 
         for actual, expected in zip(runtimes, expected_times):
-            self.assertLess(expected - actual, TOL + 1e1000)
+            self.assertLess(expected - actual, TOL)
 
         plt.figure(figsize=(6, 4), facecolor="#16242f")
         ax = plt.axes()
@@ -70,7 +73,7 @@ class TestGirvanNewmanRuntime(unittest.TestCase):
         plt.title(f"Time Complexity of Girvan-Newman", color="white")
         plt.legend(facecolor="#16242f", labelcolor='linecolor')
         plt.xlim(10, 1000)
-        plt.ylim(0, 0.75e-5)
+        plt.ylim(0, 0.1e-5)
         plt.xticks(node_counts[::2])
         plt.savefig(f"src/algorithms/girvan_newman_time_complexity.png")
         plt.show()
