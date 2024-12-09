@@ -1,4 +1,5 @@
 from algorithms.prims import prims
+from PyQt6.QtCore import Qt
 
 
 class PrimsRunner:
@@ -8,20 +9,14 @@ class PrimsRunner:
         self.graph = scene._graphScene.graph
 
     def run(self):
-        try:
-            self.mst = prims(self.graph)
-        except:
-            print(f"Failed to run Prim's Algorithm on {self.graph}\n", self.graph.edges(data=True))
+        if self.graph.is_directed():
+            self.graph = self.graph.to_undirected()
+        if self.graph.number_of_nodes() == 0:
             return
 
-        try:
-            self.graphScene.clearGraph()
-        except:
-            print("Failed to clear graph")
-            return
+        mst = prims(self.graph.copy())
+        mst_edges = mst.edges()
 
-        try:
-            self.graphScene.importGraph(self.mst)
-        except:
-            print(f"Failed to import MST {self.mst} into graph scene")
-            return
+        self.scene._graphScene.colorEdges(mst_edges, Qt.GlobalColor.darkRed)
+
+        self.scene._resetColorOnClick = True
