@@ -50,6 +50,19 @@ class Window(QWidget):
         hbox.addWidget(self.view)
 
         self.setLayout(hbox)
+
+        self.setStyleSheet("""
+            QPushButton {
+            background-color: #f0f0f0; 
+            color: black; 
+            font-weight: bold; 
+            border-radius: 4px; 
+            padding: 5px 10px;
+            }
+            QPushButton:hover {
+            background-color: #d0d0d0;
+            }
+        """)
     
     def initGraphGenButton(self, vbox):
         self.graph_gen_button = QPushButton("Generate Graph")
