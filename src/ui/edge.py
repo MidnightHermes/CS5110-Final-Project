@@ -76,6 +76,7 @@ class Edge(QGraphicsItemGroup):
     @color.setter
     def color(self, color: Qt.GlobalColor):
         self._linePen.setColor(color)
+        self._linePen.setWidth(3)
         self._visibleLine.setPen(self._linePen)
         self._arrowHead.setBrush(QBrush(color))
 
