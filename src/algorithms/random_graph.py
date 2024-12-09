@@ -206,7 +206,6 @@ class RandomGraphBuilder:
             start_time[node] = global_time
             time_node_map[global_time] = node
             low[node] = global_time
-            
 
             for v in g.adj[node]:
                 if start_time[v] == -1:
@@ -217,18 +216,23 @@ class RandomGraphBuilder:
                 low[node] = min(low[node], start_time[v])
 
             if low[node] > 0 and low[node] == start_time[node]:
-                # TODO: Fix possible infinite loop. Probably by pruning away pairs with connections already
-                #       instead of picking randomly until the conditions are satisfied.
-                backwards = True
-                while backwards:
-                    x = random.randint(start_time[node], global_time)
-                    y = random.randrange(0, start_time[node])
+                x_choices = list(range(start_time[node], global_time + 1))
+                
+                y = None
+                while y is None:
+                    if len(x_choices) == 0:
+                        raise ValueError("cannot make this graph strongly connected with no backwards edges")
 
-                    u = time_node_map[x]
-                    v = time_node_map[y]
+                    x = random.choice(x_choices)
+                    x_choices.remove(x)
 
-                    backwards = not backwards_edges and (v, u) in g.edges
+                    y_choices = [y for y in range(0, start_time[node]) if backwards_edges or (time_node_map[x], time_node_map[y]) not in g.edges]
 
+                    if len(y_choices) > 0:
+                        y = random.choice(y_choices)
+
+                u = time_node_map[x]
+                v = time_node_map[y]
 
                 g.add_edge(u, v)
 
