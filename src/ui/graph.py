@@ -121,7 +121,7 @@ class GraphScene(ItemGroup):
         min_x = min(x for x, y in positions.values())
         min_y = min(y for x, y in positions.values())
         # Finally, update the backend graph object to include the new graph
-        self._graph = nx.disjoint_union(self._graph, graph)
+        # self._graph = nx.disjoint_union(self._graph, graph)
         for node, (x, y) in positions.items():
             # And scale the positions to fit the size of the scene
             vertex = Vertex((x - min_x * 2) * 200, (y - min_y * 1.5) * 150)
