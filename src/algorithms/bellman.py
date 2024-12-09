@@ -78,3 +78,35 @@ def bellman_ford(g, source):
             raise NegativeCycleException(u, v, predecessor)
 
     return distance, predecessor
+
+if __name__ == '__main__':
+    from random_graph import RandomGraphBuilder
+    from visualize_runtime import measure_runtime, plot_results
+
+    import random
+
+    def graph_gen_function(nodes, nedges):
+        max_edges = (nodes * (nodes - 1)) / 2
+        edge_density = nedges / max_edges
+
+        return RandomGraphBuilder().nodes(nodes).strongly_connected(False).random_edges(edge_density).connected().weighted(range(-1, 50)).build()
+    
+    runtime_function = lambda n, m: n * m
+
+    algorithm = lambda g: bellman_ford(g, random.choice(sorted(g.nodes())))
+
+    count = 0
+    while True:
+        MAX_ATTEMPTS = 50
+        if count > MAX_ATTEMPTS:
+            raise Exception(f"Failed to generate a valid graph after {MAX_ATTEMPTS} attempts")
+        count += 1
+
+        results = measure_runtime(algorithm, graph_gen_function, runtime_function)
+        print(results)
+        break
+
+    plot_results(results, 'Bellman-Ford', \
+                 expected_runtime="Expected Runtime: $O(|V||E|)$", \
+                 line_color="#13ff50"\
+                )
