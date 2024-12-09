@@ -29,6 +29,7 @@ class BellmanFordRunner:
             self.scene._graphScene.colorEdges(edges, Qt.GlobalColor.magenta)
             
         except NegativeCycleException as nce:
-            raise nce
+            self.scene._graphScene.colorEdges(nce.edges, Qt.GlobalColor.red)
+            self.scene._graphScene.colorVertices(nce.cycle, Qt.GlobalColor.red)
         
         self.scene._resetColorOnClick = True
