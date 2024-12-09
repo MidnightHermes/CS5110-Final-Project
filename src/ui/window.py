@@ -53,7 +53,7 @@ class Window(QWidget):
 
         self.setStyleSheet("""
             QPushButton {
-            background-color: #f0f0f0; 
+            background-color: #cacaca; 
             color: black; 
             font-weight: bold; 
             border-radius: 4px; 
