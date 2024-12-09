@@ -74,8 +74,8 @@ class GraphScene(ItemGroup):
         else:
             self._graph = nx.DiGraph()
 
-        self._coloredVertices = {}
-        self._coloredEdges = {}
+        self._coloredVertices = set()
+        self._coloredEdges = set()
 
     @property
     def graph(self):
