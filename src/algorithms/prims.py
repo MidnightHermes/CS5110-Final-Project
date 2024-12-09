@@ -20,7 +20,7 @@ def prims(graph: nx.Graph | nx.DiGraph) -> nx.Graph | nx.DiGraph:
         # heapq orders items based on the zeroth element so we set that to weight
         heapq.heappush(p_queue, (weight, edge_tuple))
 
-    while mst.nodes != graph.nodes:
+    while len(p_queue) > 0:
         edge = heapq.heappop(p_queue)
 
         if edge[1][1] not in mst.nodes:
