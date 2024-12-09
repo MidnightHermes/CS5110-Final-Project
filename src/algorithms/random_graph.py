@@ -305,3 +305,30 @@ class RandomGraphBuilder:
         mapping = {x: y for (x, y) in zip(domain, codomain)}
 
         return nx.relabel_nodes(g, mapping)
+    
+    @transform
+    def remove_negative_cycles(g):
+        from bellman import bellman_ford, NegativeCycleException
+
+        has_negative_cycle = True
+        while has_negative_cycle:
+            try:
+                for v in g.nodes():
+                    bellman_ford(g, v)
+
+                has_negative_cycle = False
+            except NegativeCycleException as nce:
+                edges = nce.edges
+
+                cycle_weight = sum(g.edges[e]['weight'] for e in edges)
+
+                nonneg_edges = list(filter(lambda e: g.edges[e]['weight'] >= 0, edges))
+
+                # would rather make a positive edge bigger than make a negative edge non-negative
+                if len(nonneg_edges) > 0:
+                    choice = random.choice(nonneg_edges)
+                else:
+                    choice = random.choice(edges)
+                g.edges[choice]['weight'] += -cycle_weight
+
+        return g
