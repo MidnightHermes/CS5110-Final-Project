@@ -55,7 +55,7 @@ class RunAlgPopup(QWidget):
         self.closeButton.clicked.connect(self.reject)
         layout = QVBoxLayout(self.container)
         layout.setContentsMargins(buttonSize * 2, buttonSize, buttonSize * 2, buttonSize)
-        title = QLabel('Select a graph generation method', objectName='title', alignment=Qt.AlignmentFlag.AlignCenter)
+        title = QLabel('Select an algorithm to run on your graph', objectName='title', alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
 
