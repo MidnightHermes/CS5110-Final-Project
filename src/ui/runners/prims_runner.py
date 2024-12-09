@@ -11,7 +11,7 @@ class PrimsRunner:
         try:
             self.mst = prims(self.graph)
         except:
-            print(f"Failed to run Prim's Algorithm on {self.graph}\n", self.graph.edges(data=True), self.graph.nodes)
+            print(f"Failed to run Prim's Algorithm on {self.graph}\n", self.graph.edges(data=True))
             return
 
         try:
