@@ -1,5 +1,6 @@
 from algorithms.prims import prims
 
+
 class PrimsRunner:
     def __init__(self, scene):
         self.scene = scene
