@@ -11,7 +11,7 @@ class GirvanNewmanRunner:
         self.graph = scene._graphScene.graph
 
     def run(self):
-        self.communities, self.edges = next(girvan_newman(self.graph, return_extra_info=True))
+        self.communities, self.edges = next(girvan_newman(self.graph.copy(), return_extra_info=True))
 
         colors = [Qt.GlobalColor.red, Qt.GlobalColor.blue, Qt.GlobalColor.green, Qt.GlobalColor.magenta]
         # Don't add edges that were drawn in the previous community
