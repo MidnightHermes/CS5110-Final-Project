@@ -24,6 +24,8 @@ class Edge(QGraphicsItemGroup):
     def __init__(self, originVertex, linkVertex, directed=True, weight=None, doOffset=False):
         super().__init__()
 
+        isWeighted = weight is not None
+
         global _weight
         if weight is None:
             weight = _weight
@@ -59,6 +61,7 @@ class Edge(QGraphicsItemGroup):
 
         self._weightText = EdgeWeightTextItem(f'{_weight:g}', self._visibleLine, doOffset)
         self._weightText.setBrush(QBrush(self._color))
+        self._weightText.setVisible(isWeighted)
         self._weight = _weight
 
         # Handle arrowHead
