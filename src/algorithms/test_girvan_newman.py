@@ -76,7 +76,7 @@ class TestGirvanNewmanRuntime(unittest.TestCase):
         plt.ylim(0, 0.1e-5)
         plt.xticks(node_counts[::2])
         plt.savefig(f"src/algorithms/girvan_newman_time_complexity.png")
-        plt.show()
+        # plt.show()
 
 
 if __name__ == "__main__":
