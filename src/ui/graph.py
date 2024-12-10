@@ -121,11 +121,12 @@ class GraphScene(ItemGroup):
         min_x = min(x for x, y in positions.values())
         min_y = min(y for x, y in positions.values())
         # Finally, update the backend graph object to include the new graph
-        # self._graph = nx.disjoint_union(self._graph, graph)
+        self._graph = nx.disjoint_union(self._graph, graph)
+        node_map = dict()
         for node, (x, y) in positions.items():
             # And scale the positions to fit the size of the scene
             vertex = Vertex((x - min_x * 2) * 200, (y - min_y * 1.5) * 150)
-            vertex.label = node
+            node_map[node] = vertex.label
             self._vertexList.append(vertex)
             self.addToGroup(vertex)
 
@@ -134,8 +135,9 @@ class GraphScene(ItemGroup):
                 weight = edge[2]['weight']
             except KeyError:
                 weight = None
-            originVertex = next(vertex for vertex in self._vertexList if vertex.label == edge[0])
-            linkVertex = next(vertex for vertex in self._vertexList if vertex.label == edge[1])
+
+            originVertex = next(vertex for vertex in self._vertexList if vertex.label == node_map[edge[0]])
+            linkVertex = next(vertex for vertex in self._vertexList if vertex.label == node_map[edge[1]])
             offset_weight = self.doOffset(originVertex, linkVertex)
             edge = Edge(originVertex, linkVertex, self._isDirected, weight, offset_weight)
             originVertex.addEdge(edge)

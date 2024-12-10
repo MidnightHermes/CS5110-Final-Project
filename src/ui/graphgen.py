@@ -289,7 +289,6 @@ class GraphGenPopup(QWidget):
 
             # Import the newly generated graph to the scene
             graphScene = self.parent().scene._graphScene
-            curr_graph = graphScene._graph
 
             steps = self.buildList.values()
             new_graph = nx.DiGraph() if graphScene._isDirected else nx.Graph()
@@ -297,9 +296,8 @@ class GraphGenPopup(QWidget):
             for f, args in steps:
                 new_graph = f(new_graph, **args)
 
-            combined_graph = nx.disjoint_union(curr_graph, new_graph)
-            graphScene._graph = combined_graph
-            graphScene.importGraph(combined_graph)
+            # combined_graph = nx.disjoint_union(curr_graph, new_graph)
+            graphScene.importGraph(new_graph)
 
     def reject(self):
         self.loop.exit(False)
