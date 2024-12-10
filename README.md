@@ -46,7 +46,7 @@ Finally, deactivate your new environment so it doesn't bother you later by simpl
  │ │  ├─ <algorithm>_animation.gif  # Aforementioned animated visualization saved as a .gif file
  │ │  └─ <algorithm>_time_complexity.png  # A simple chart comparing expected runtime against measured runtime
  │ ├─ helpers
- │ │  └─ heap.py  # A simple implementation of a Fibonacci minheap PriorityQueue which was not used
+ │ │  └─ heap.py  # A simple implementation of a Binary minheap PriorityQueue which was not used
  │ ├─ ui
  │ │  ├─ runners
  │ │  │  └─  ...  # Files used to run the algorithms within the GUI
