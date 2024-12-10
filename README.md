@@ -5,9 +5,32 @@
 ### Setting up
 To run our project, set up a virtual python environment with `python -m venv .venv`, then activate it by typing `source .venv/Scripts/activate` or `source .venv/Scripts/bin/activate` in a UNIX environment. Finally, install the required dependencies into your new virtual environment with `pip install -r requirements.txt`.
 
-### Running the project
+### Running the GUI
 With that, you can run the main file using `python3 src/main.py`.
-You will see a window pop up and ... `TODO`
+You will see a window pop up and you are free to build and manipulate your graph!  
+
+#### GUI Functionality
+- Run an Algorithm
+  - Clicking this button opens a popup window which prompts you with one of our four implemented algorithms to be run on your current graph
+- Graph Generation
+  - Clicking this button opens a popup window which prompts you to click and drag options for building your graph
+  - You must specify the number of nodes in your newly generated graph in the appropriate text box
+- Three 'manual' manipulation modes
+  - Select
+    - Left click and drag an existing vertex to displace it
+  - Vertices
+    - Left click an empty space to create a Vertex with an auto-generated label
+    - Right click a vertex to remove it
+  - Edges
+    - Left click an initial node and a link node to create an edge between the two
+    - Right click an existing edge to remove it
+- Clear the graph
+  - With just one click of this button, you can wipe your canvas clean and start anew!
+- Edge Weights
+  - Edge weights can be specified by adding an integer value to the text box before creating an edge
+  - Edge weights can be toggled on/off for the entire graph by clicking the checkbox
+- Graph Directed-ness
+  - You can toggle whether the graph is directed or not by clicking the appropriate checkbox
 
 ### Breaking down
 Finally, deactivate your new environment so it doesn't bother you later by simply typing `deactivate`.
