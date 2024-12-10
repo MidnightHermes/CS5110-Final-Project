@@ -4,7 +4,7 @@ import random
 import time
 import matplotlib.pyplot as plt
 
-from girvan_newman import girvan_newman
+from girvan_newman import girvan_newman, betweenness
 from random_graph import RandomGraphBuilder as randG
 
 
@@ -21,6 +21,19 @@ class TestGirvanNewmanAlgorithm(unittest.TestCase):
         # Test our algorithm against built-in networkx function
         actual = next(nx.community.girvan_newman(self.graph))
         expected = next(self.out)
+
+        self.assertEqual(actual, expected)
+
+
+class TestGirvanNewmanBetweenness(unittest.TestCase):
+    def test_actual_solution(self):
+        # Test our algorithm against built-in networkx function
+        self.graph = randG().nodes(random.randint(10, 20)).random_edges(0.5).build()
+
+        actual = nx.edge_betweenness_centrality(self.graph.copy())
+        expected = betweenness(self.graph.copy())
+
+        print(actual, '\n\n', expected, '\n\n')
 
         self.assertEqual(actual, expected)
 
