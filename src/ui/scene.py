@@ -116,7 +116,7 @@ class Scene(QGraphicsScene):
             super().mouseReleaseEvent(e)
 
     def mouseMoveEvent(self, e):
-        if self._dragging:
+        if False and self._dragging: # disable dragging because incredibly scuffed
             # How much mouse has moved since last time
             d = e.scenePos() - self._dragMousePos
 
