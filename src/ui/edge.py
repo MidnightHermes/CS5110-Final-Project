@@ -66,8 +66,9 @@ class Edge(QGraphicsItemGroup):
         self._arrowHead.setBrush(QBrush(self._color))
         self._arrowHead.setZValue(-1)
 
-        if directed:
-            self.addToGroup(self._arrowHead)
+        self.addToGroup(self._arrowHead)
+
+        self._arrowHead.setOpacity(1.0 if directed else 0.0)
     
     @property
     def color(self):
