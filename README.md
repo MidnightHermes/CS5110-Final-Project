@@ -58,3 +58,6 @@ Finally, deactivate your new environment so it doesn't bother you later by simpl
  ├─ requirements.txt
  └─ WriteUp.pdf
 ```
+
+## Reading
+The [final write-up](https://github.com/MidnightHermes/CS5110-Final-Project/blob/main/WriteUp.pdf/) for this project, as well as the [final presentation](https://github.com/MidnightHermes/CS5110-Final-Project/blob/main/Presentation.pdf), are available for more information.
